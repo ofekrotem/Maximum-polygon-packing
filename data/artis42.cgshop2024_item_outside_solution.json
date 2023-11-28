@@ -1,0 +1,9 @@
+{
+  "type": "cgshop2024_solution",
+  "instance_name": "atris42",
+  "num_included_items": 2,
+  "meta": {"approach": "item outside container example"},
+  "item_indices": [0, 1],
+  "x_translations": [0, 0],
+  "y_translations": [0, 15000]
+}
