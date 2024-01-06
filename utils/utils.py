@@ -145,6 +145,7 @@ def visualize_solution(container, shapes,solution):
 # Example usage:
 CONTAINER,SHAPES_LIST = load_json_from_file('../data/atris42.cgshop2024_instance.json','i')
 SOLUTION = load_json_from_file('../data/artis42.cgshop2024_items_overlap_solution.json','s')
+#print(SOLUTION.export_to_json())
 valid = is_valid_solution(CONTAINER,SHAPES_LIST,SOLUTION)
 print("Is the solution valid?", valid)
 
