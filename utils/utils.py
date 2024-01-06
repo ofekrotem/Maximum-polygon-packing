@@ -132,7 +132,7 @@ def visualize_solution(container, shapes,solution):
         item_polygon = patches.Polygon(list(zip(item_x, item_y)), closed=True, edgecolor='red', alpha=0.5)
         ax.add_patch(item_polygon)
 
-        print(f"Item {idx} Coordinates: {item_x}, {item_y}")
+        #print(f"Item {idx} Coordinates: {item_x}, {item_y}")
 
     # Set plot limits based on all coordinates
     ax.set_xlim([min(all_x_coords) - PLOT_OFFSET, max(all_x_coords) + PLOT_OFFSET])
