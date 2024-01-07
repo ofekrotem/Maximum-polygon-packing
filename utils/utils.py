@@ -22,8 +22,10 @@ def load_json_from_file(file_path,classification):
                 shapes_data = json_data['items']
                 shapes_list=[]
                 cont = Container(json_data['container']['x'], json_data['container']['y'],json_data['instance_name'])
+                index=0
                 for item in shapes_data:
-                    shapes_list.append(Shape(item['x'],item['y'],item['quantity'],item['value']))
+                    shapes_list.append(Shape(item['x'],item['y'],item['quantity'],item['value'],index))
+                    index+=1
                 return (cont,shapes_list)
             else:
                 sol= Solution(json_data['type'],json_data['instance_name'],json_data['num_included_items'],json_data['meta'],json_data['item_indices'],json_data['x_translations'],json_data['y_translations'])
