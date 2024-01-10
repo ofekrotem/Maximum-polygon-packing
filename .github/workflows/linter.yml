@@ -1,0 +1,10 @@
+name: Linter
+
+on: [pull_request]
+
+jobs:
+  Linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: chartboost/ruff-action@v1
