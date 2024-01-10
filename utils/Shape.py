@@ -2,12 +2,12 @@ from shapely.geometry import Polygon
 
 
 class Shape:
-    def __init__(self, x_cor, y_cor, qty, val, index):
+    def __init__(self, x_cor, y_cor, qnty, val, index):
         if len(x_cor) != len(y_cor):
             raise Exception("Unmatched sizes!")
         self.X_cor = x_cor
         self.Y_cor = y_cor
-        self.Quantity = qty
+        self.Quantity = qnty
         self.Value = val
         self.Index = index
         self.Polygon = Polygon(self.create_polygon_object())
