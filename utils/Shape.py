@@ -8,7 +8,7 @@ class Shape:
         self.Value=val
 
     def __str__(self):
-        str=f"Value: {self.Value} \n Quantity: {self.Quantity} \n"
+        str=f"Value: {self.Value} \n Quantity: {self.Quantity} \n";
         for i in range(len(self.X_cor)):
             str += f"({self.X_cor[i]} , {self.Y_cor[i]})\n"
         return str
