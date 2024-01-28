@@ -26,11 +26,11 @@ class Algo:
         return shuffled
 
     def find_ranges(self, s: Shape) -> list[int]:
-        minX = min(self.Container.X_cor) - min(s.X_cor)
-        maxX = max(self.Container.X_cor) - max(s.X_cor)
-        minY = min(self.Container.Y_cor) - min(s.Y_cor)
-        maxY = max(self.Container.Y_cor) - max(s.Y_cor)
-        return [minX, minY, maxX, maxY]
+        min_x = min(self.Container.X_cor) - min(s.X_cor)
+        max_x = max(self.Container.X_cor) - max(s.X_cor)
+        min_y = min(self.Container.Y_cor) - min(s.Y_cor)
+        max_y = max(self.Container.Y_cor) - max(s.Y_cor)
+        return [min_x, min_y, max_x, max_y]
 
     # 2 variatons of this function, controlled by 'classification' arg:
     # 1. "random" - for a random order scan of the shapes list
@@ -39,16 +39,16 @@ class Algo:
         s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
         solution_shapes_list = self.Shapes
         if classification == "random":
-            print(f"Random shapes list")
+            print("Random shapes list")
             solution_shapes_list = self.ShuffledShapes
         elif classification == "sort by area":
-            print(f"Sorted by area")
+            print("Sorted by area")
             solution_shapes_list = self.SortedbyAreaShapes
         for shape in solution_shapes_list:
-            minX, minY, maxX, maxY = self.find_ranges(shape)
+            min_x, min_y, max_x, max_y = self.find_ranges(shape)
             for i in range(TRIES):
-                x_sample = random.randint(minX, maxX)
-                y_sample = random.randint(minY, maxY)
+                x_sample = random.randint(min_x, max_x)
+                y_sample = random.randint(min_y, max_y)
                 s.X_Offset.append(x_sample)
                 s.Y_Offset.append(y_sample)
                 s.Items_ID.append(shape.Index)

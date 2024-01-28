@@ -1,8 +1,6 @@
 import json
-import os
 from utils.Container import Container
 from utils.Shape import Shape
-from utils.Solution import Solution
 
 
 def load_json_from_file(file_path: str) -> (Container, list[Shape]):
