@@ -2,7 +2,7 @@ from shapely.geometry import Polygon
 
 
 class Shape:
-    def __init__(self, x_cor, y_cor, qnty, val, index):
+    def __init__(self, x_cor:list[int], y_cor:list[int], qnty:int, val:int, index:int):
         if len(x_cor) != len(y_cor):
             raise Exception("Unmatched sizes!")
         self.X_cor = x_cor
@@ -12,7 +12,7 @@ class Shape:
         self.Index = index
         self.Polygon = Polygon(self.create_polygon_object())
 
-    def create_polygon_object(self):
+    def create_polygon_object(self)->list[(int,int)]:
         vertices = []
         for index in range(len(self.X_cor)):
             vertices.append((self.X_cor[index], self.Y_cor[index]))
@@ -25,5 +25,7 @@ class Shape:
         str += f"Original Index in instance file: {self.Index}"
         return str
 
-    def get_area(self):
+    def get_area(self)->float:
         return self.Polygon.area
+
+

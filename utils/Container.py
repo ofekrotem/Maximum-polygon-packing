@@ -1,5 +1,5 @@
 class Container:
-    def __init__(self,x_cor,y_cor,in_name):
+    def __init__(self,x_cor:list[int],y_cor:list[int],in_name:str):
         if len(x_cor) != len(y_cor):
             raise Exception("Unmatched sizes!")
         self.X_cor=x_cor
