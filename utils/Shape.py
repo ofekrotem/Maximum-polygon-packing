@@ -27,3 +27,7 @@ class Shape:
 
     def get_area(self):
         return self.Polygon.area
+
+    def get_rate(self):  # TODO check if this need to be opposite
+        return self.get_area() / self.Value
+

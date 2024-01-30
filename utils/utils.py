@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 from Container import Container
 from Shape import Shape
 from Soultion import Solution
-
+from GreedyAlgorithm import GreedyAlgorithm
+from shape_mapper import ShapeMapper
 VISUALIZE_SOLUTION = True
 PLOT_OFFSET = 300
-
 
 def load_json_from_file(file_path,classification):
     absolute_path = os.path.dirname(__file__)
@@ -145,11 +145,24 @@ def visualize_solution(container, shapes,solution):
 
 
 # Example usage:
-CONTAINER,SHAPES_LIST = load_json_from_file('../data/atris42.cgshop2024_instance.json','i')
-SOLUTION = load_json_from_file('../data/artis42.cgshop2024_items_overlap_solution.json','s')
-#print(SOLUTION.export_to_json())
-valid = is_valid_solution(CONTAINER,SHAPES_LIST,SOLUTION)
-print("Is the solution valid?", valid)
+CONTAINER,SHAPES_LIST = load_json_from_file('../data/example_instance.json','i')
 
-if valid or VISUALIZE_SOLUTION:
-    visualize_solution(CONTAINER, SHAPES_LIST, SOLUTION)
+algorithm = ShapeMapper()
+# Solve with GreedyAlgorithm
+solution = algorithm.solve(CONTAINER, SHAPES_LIST)
+
+# Access x_offset, y_offset, and total_value from solution object
+x_offset = solution.X_Offset
+y_offset = solution.Y_Offset
+total_value = sum(shape.Value for shape in solution)
+
+# Visualize the solution
+visualize_solution(CONTAINER, SHAPES_LIST, solution)
+
+# Use x_offset, y_offset, and total_value as needed
+print("X Offset:", x_offset)
+print("Y Offset:", y_offset)
+print("Total Value:", total_value)
+'''
+data/artis42.cgshop2024_valid_solution.json
+'''
