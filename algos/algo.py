@@ -1,13 +1,20 @@
 from utils.Solution import Solution
 from utils.Shape import Shape
 from utils.Container import Container
+from enum import Enum
 import random
+random.seed(0)
 
 # Consts
 TYPE = "cgshop2024_solution"
 NAME = "atris42"
 META = {"approach": "generated solution"}
 TRIES = 2000
+
+class Classification(Enum):
+    RANDOM = "random"
+    SORT_BY_AREA = "sort_by_area"
+
 
 
 class Algo:
@@ -51,16 +58,16 @@ class Algo:
         s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
         solution_shapes_list = self.Shapes
 
-        if classification == "random":
+        if classification == Classification.RANDOM:
             print("Random shapes list")
             solution_shapes_list = self.ShuffledShapes
-        elif classification == "sort by area":
+        elif classification == Classification.SORT_BY_AREA:
             print("Sorted by area")
             solution_shapes_list = self.SortedbyAreaShapes
 
         for shape in solution_shapes_list:
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
-            print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
+            # print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
             for i in range(TRIES):
                 x_sample = random.randint(min_x, max_x)
@@ -71,13 +78,12 @@ class Algo:
 
                 ans = s.is_valid()
                 if ans:
-                    print(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
+                    # print(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
                     break
                 else:
-                    print(f"Failed attempt {i+1} for shape {shape.Index}")
                     s.X_Offset.pop()
                     s.Y_Offset.pop()
                     s.Items_ID.pop()
-        print(s)
+        # print(s)
         return s
 

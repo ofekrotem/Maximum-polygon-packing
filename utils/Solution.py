@@ -1,7 +1,6 @@
 import json
-
 from matplotlib import pyplot as plt, patches
-
+from shapely.geometry import Polygon
 from .Container import Container
 from .Shape import Shape
 
@@ -44,35 +43,20 @@ class Solution:
         if any(index < 0 or index >= len(self.Items_ID) for index in self.Items_ID):
             return False
 
-        for i in range(len(self.Items_ID)):
-            item_index = self.Items_ID[i]
-            x_translation = self.X_Offset[i]
-            y_translation = self.Y_Offset[i]
+        # Create a list of Shapely Polygons for each shape
+        shape_polygons = [Polygon([(x + self.X_Offset[i], y + self.Y_Offset[i]) for x, y in zip(
+            self.Shapes[item_index].X_cor, self.Shapes[item_index].Y_cor)]) for i, item_index in enumerate(self.Items_ID)]
 
-            item_x = [x + x_translation for x in self.Shapes[item_index].X_cor]
-            item_y = [y + y_translation for y in self.Shapes[item_index].Y_cor]
-
-            # Check if item is inside the container
-            if any(
-                    x < min(self.Container.X_cor) or x > max(self.Container.X_cor) or y < min(
-                        self.Container.Y_cor) or y > max(
-                        self.Container.Y_cor)
-                    for x, y in zip(item_x, item_y)
-            ):
-                return False
-
-            # Check for item overlap
-            for j in range(i + 1, len(self.Items_ID)):
-                other_index = self.Items_ID[j]
-                other_x = [x + self.X_Offset[j] for x in self.Shapes[other_index].X_cor]
-                other_y = [y + self.Y_Offset[j] for y in self.Shapes[other_index].Y_cor]
-
-                if any(
-                        max(x1) > min(x2) and min(x1) < max(x2) and max(y1) > min(y2) and min(y1) < max(y2)
-                        for x1, y1 in zip([item_x], [item_y])
-                        for x2, y2 in zip([other_x], [other_y])
-                ):
+        for i in range(len(shape_polygons)):
+            for j in range(i + 1, len(shape_polygons)):
+                if shape_polygons[i].intersects(shape_polygons[j]):
                     return False
+
+        # Check if all shapes are inside the container
+        container_polygon = Polygon(list(zip(self.Container.X_cor, self.Container.Y_cor)))
+        for i in range(len(shape_polygons)):
+            if not container_polygon.contains(shape_polygons[i]):
+                return False
 
         return True
 
