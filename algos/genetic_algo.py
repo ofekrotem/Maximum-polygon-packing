@@ -71,34 +71,34 @@ class GeneticAlgo(Algo):
 
     def crossover(self, s1: Solution, s2: Solution) -> Solution:
         print("entered Crossover")
-        s1Child = copy.deepcopy(s1)
-        s2Child = copy.deepcopy(s2)
+        s1_child = copy.deepcopy(s1)
+        s2_child = copy.deepcopy(s2)
 
         # Try to fit shapes that are in s2 and not in s1 into s1
         for i in range(len(s2.Items_ID)):
-            if s2.Items_ID[i] not in s1Child.Items_ID:
-                temp_child = copy.deepcopy(s1Child)
+            if s2.Items_ID[i] not in s1_child.Items_ID:
+                temp_child = copy.deepcopy(s1_child)
                 temp_child.Items_ID.append(s2.Items_ID[i])
                 temp_child.X_Offset.append(s2.X_Offset[i])
                 temp_child.Y_Offset.append(s2.Y_Offset[i])
 
                 if temp_child.is_valid():
-                    s1Child = copy.deepcopy(temp_child)
-                    print(f"Merged shape into s1Child raising grade from {s1Child.grade()} to {temp_child.grade()}")
+                    s1_child = copy.deepcopy(temp_child)
+                    print(f"Merged shape into s1_child raising grade from {s1_child.grade()} to {temp_child.grade()}")
 
         # Try to fit shapes that are in s1 and not in s2 into s2
         for i in range(len(s1.Items_ID)):
-            if s1.Items_ID[i] not in s2Child.Items_ID:
-                temp_s2 = copy.deepcopy(s2Child)
+            if s1.Items_ID[i] not in s2_child.Items_ID:
+                temp_s2 = copy.deepcopy(s2_child)
                 temp_s2.Items_ID.append(s1.Items_ID[i])
                 temp_s2.X_Offset.append(s1.X_Offset[i])
                 temp_s2.Y_Offset.append(s1.Y_Offset[i])
 
                 if temp_s2.is_valid():
-                    print(f"Merged shape into s2Child raising grade from {s2Child.grade()} to {temp_s2.grade()}")
-                    s2Child = copy.deepcopy(temp_s2)
+                    print(f"Merged shape into s2_child raising grade from {s2_child.grade()} to {temp_s2.grade()}")
+                    s2_child = copy.deepcopy(temp_s2)
 
-        return max(s1Child, s2Child, key=lambda s: s.grade())
+        return max(s1_child, s2_child, key=lambda s: s.grade())
 
     def tournament_selection(self) -> Solution:
         # Tournament selection: Randomly select a subset of solutions and choose the best among them
