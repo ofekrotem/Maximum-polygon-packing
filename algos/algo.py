@@ -9,9 +9,9 @@ random.seed(0)
 TYPE = "cgshop2024_solution"
 NAME = "atris42"
 META = {"approach": "generated solution"}
-TRIES = 2000
+TRIES = 10
 
-class Classification(Enum):
+class AlgoClassification(Enum):
     RANDOM = "random"
     SORT_BY_AREA = "sort_by_area"
 
@@ -43,10 +43,10 @@ class Algo:
         min_container_y = min(self.Container.Y_cor)
         max_container_y = max(self.Container.Y_cor)
 
-        min_x = max(min_container_x, min_container_x - min_shape_x)
-        max_x = min(max_container_x, max_container_x - max_shape_x)
-        min_y = max(min_container_y, min_container_y - min_shape_y)
-        max_y = min(max_container_y, max_container_y - max_shape_y)
+        min_x = min_container_x - min_shape_x
+        max_x = max_container_x - max_shape_x
+        min_y = min_container_y - min_shape_y
+        max_y = max_container_y - max_shape_y
 
         return min_x, min_y, max_x, max_y
 
@@ -58,27 +58,28 @@ class Algo:
         s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
         solution_shapes_list = self.Shapes
 
-        if classification == Classification.RANDOM:
+        if classification == AlgoClassification.RANDOM:
             print("Random shapes list")
             solution_shapes_list = self.ShuffledShapes
-        elif classification == Classification.SORT_BY_AREA:
+        elif classification == AlgoClassification.SORT_BY_AREA:
             print("Sorted by area")
             solution_shapes_list = self.SortedbyAreaShapes
 
         for shape in solution_shapes_list:
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
-            # print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
+            print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
             for i in range(TRIES):
                 x_sample = random.randint(min_x, max_x)
                 y_sample = random.randint(min_y, max_y)
+                print(f"Trying to place {shape.Index} with Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y} at ({x_sample}, {y_sample})")
                 s.X_Offset.append(x_sample)
                 s.Y_Offset.append(y_sample)
                 s.Items_ID.append(shape.Index)
 
                 ans = s.is_valid()
                 if ans:
-                    # print(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
+                    print(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
                     break
                 else:
                     s.X_Offset.pop()

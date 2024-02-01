@@ -37,10 +37,10 @@ class Solution:
             "x_translations": self.X_Offset,
             "y_translations": self.Y_Offset
         }
-        return json.dumps(json_data)
+        return json_data
 
     def is_valid(self) -> bool:
-        if any(index < 0 or index >= len(self.Items_ID) for index in self.Items_ID):
+        if any(index < 0 or index >= len(self.Shapes) for index in self.Items_ID):
             return False
 
         # Create a list of Shapely Polygons for each shape
@@ -101,3 +101,16 @@ class Solution:
         for index in self.Items_ID:
             grade=grade+self.Shapes[index].Value
         return grade
+
+    @classmethod
+    def import_from_json(cls, json_data):
+        type = json_data.get("type", "")
+        name = json_data.get("instance_name", "")
+        meta = json_data.get("meta", {})
+        items = json_data.get("item_indices", [])
+        x = json_data.get("x_translations", [])
+        y = json_data.get("y_translations", [])
+
+        sol = Solution(type, name, meta, items, x, y, Container(), [])
+
+        return sol
