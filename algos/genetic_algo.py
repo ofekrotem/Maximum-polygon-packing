@@ -1,5 +1,6 @@
 import copy
 import json
+import time
 from tqdm import tqdm
 from .algo import Algo, AlgoClassification
 from utils.Container import Container
@@ -21,6 +22,8 @@ class GeneticAlgo(Algo):
         self.instance_name = instance_name
 
     def run(self):
+        start_time = time.time()
+
         self.curr_generation = self.generate_base_gen()
         best_grade_so_far = max(self.curr_generation, key=lambda s: s.grade()).grade()
         print(f"Best solution in base generation: {best_grade_so_far}")
@@ -40,6 +43,9 @@ class GeneticAlgo(Algo):
                 self.curr_generation = self.next_generation
 
         sol = max(self.curr_generation, key=lambda s: s.grade())
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"Total time taken: {duration:.3f} seconds")
         sol.visualize_solution()
 
     def generate_next_gen(self) -> list[Solution]:
