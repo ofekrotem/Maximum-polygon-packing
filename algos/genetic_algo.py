@@ -49,7 +49,7 @@ class GeneticAlgo(Algo):
                 new_gen.append(child)
             else:
                 # If not diverse, generate a new solution
-                new_gen.append(self.create_random_offset_solution(AlgoClassification.RANDOM))
+                new_gen.append(self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE))
 
         return sorted(new_gen, key=lambda s: s.grade(), reverse=True)
 

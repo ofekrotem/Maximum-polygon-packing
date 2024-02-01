@@ -14,6 +14,7 @@ TRIES = 10
 class AlgoClassification(Enum):
     RANDOM = "random"
     SORT_BY_AREA = "sort_by_area"
+    SORT_BY_VALUE = "sort_by_value"
 
 
 
@@ -23,6 +24,10 @@ class Algo:
         self.Container = cont
         self.ShuffledShapes = self.shuffle_list()
         self.SortedbyAreaShapes = self.sort_area()
+        self.SortedbyValueShapes = self.sort_value()
+
+    def sort_value(self) -> list[Shape]:
+        return sorted(self.Shapes, key=lambda s: s.Value, reverse=True)
 
     def sort_area(self) -> list[Shape]:
         return sorted(self.Shapes, key=lambda s: s.get_area())
@@ -54,6 +59,7 @@ class Algo:
     # 2 variatons of this function, controlled by 'classification' arg:
     # 1. "random" - for a random order scan of the shapes list
     # 2. "sort by area" - for an increasing area scan of the shapes list
+    # 3. "sort by value" - for an decreasing value scan of the shapes list
     def create_random_offset_solution(self, classification: str) -> Solution:
         s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
         solution_shapes_list = self.Shapes
@@ -64,6 +70,9 @@ class Algo:
         elif classification == AlgoClassification.SORT_BY_AREA:
             print("Sorted by area")
             solution_shapes_list = self.SortedbyAreaShapes
+        elif classification == AlgoClassification.SORT_BY_VALUE:
+            print("Sorted by value")
+            solution_shapes_list = self.SortedbyValueShapes
 
         for shape in solution_shapes_list:
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
