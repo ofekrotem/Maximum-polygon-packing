@@ -1,5 +1,6 @@
 import copy
 import json
+from tqdm import tqdm
 from .algo import Algo, AlgoClassification
 from utils.Container import Container
 from utils.Shape import Shape
@@ -21,13 +22,23 @@ class GeneticAlgo(Algo):
 
     def run(self):
         self.curr_generation = self.generate_base_gen()
-        for i in range(self.max_generations):
-            print(f"Starting generation {i + 1}")
-            self.next_generation = self.generate_next_gen()
-            self.curr_generation = self.next_generation[:self.population_size // 2]  # Elitism: Keep the best half
-            self.curr_generation.extend(self.next_generation[self.population_size // 2:])
-            max_sol = max(self.curr_generation, key=lambda s: s.grade())
-            print(f"Best solution in generation {i + 1}: {max_sol.grade()}")
+        best_grade_so_far = max(self.curr_generation, key=lambda s: s.grade()).grade()
+        print(f"Best solution in base generation: {best_grade_so_far}")
+
+        with tqdm(total=self.max_generations, desc=f"Running genetic algorithm - Best Grade: {best_grade_so_far}", unit="gen") as pbar:
+            for i in range(self.max_generations):
+                pbar.update(1)
+                print(f"Starting generation {i + 1}")
+                self.next_generation = self.generate_next_gen()
+                max_sol = max(self.curr_generation, key=lambda s: s.grade())
+                print(f"Best solution in generation {i + 1}: {max_sol.grade()}")
+
+                if max_sol.grade() > best_grade_so_far:
+                    best_grade_so_far = max_sol.grade()
+                    pbar.set_description(f"Running genetic algorithm - Best Grade: {best_grade_so_far}")
+
+                self.curr_generation = self.next_generation
+
         sol = max(self.curr_generation, key=lambda s: s.grade())
         sol.visualize_solution()
 
