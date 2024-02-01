@@ -9,8 +9,8 @@ import random
 random.seed(0)
 
 class GeneticAlgo(Algo):
-    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int,instance_name: str):
-        super().__init__(shapes, cont)
+    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int, tries_on_random_creation: int,instance_name: str):
+        super().__init__(shapes, cont, tries_on_random_creation)
         if pop_size < 2:
             raise Exception("Population size must be at least 2")
         self.population_size = pop_size

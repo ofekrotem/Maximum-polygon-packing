@@ -9,8 +9,6 @@ random.seed(0)
 TYPE = "cgshop2024_solution"
 NAME = "atris42"
 META = {"approach": "generated solution"}
-TRIES = 10
-
 class AlgoClassification(Enum):
     RANDOM = "random"
     SORT_BY_AREA = "sort_by_area"
@@ -19,12 +17,13 @@ class AlgoClassification(Enum):
 
 
 class Algo:
-    def __init__(self, shapes: list[Shape], cont: Container):
+    def __init__(self, shapes: list[Shape], cont: Container, tries_on_random_creation: int = 100):
         self.Shapes = shapes
         self.Container = cont
         self.ShuffledShapes = self.shuffle_list()
         self.SortedbyAreaShapes = self.sort_area()
         self.SortedbyValueShapes = self.sort_value()
+        self.TriesOnRandomCreation = tries_on_random_creation
 
     def sort_value(self) -> list[Shape]:
         return sorted(self.Shapes, key=lambda s: s.Value, reverse=True)
@@ -78,7 +77,7 @@ class Algo:
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
             print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
-            for i in range(TRIES):
+            for i in range(self.TriesOnRandomCreation):
                 x_sample = random.randint(min_x, max_x)
                 y_sample = random.randint(min_y, max_y)
                 print(f"Trying to place {shape.Index} with Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y} at ({x_sample}, {y_sample})")
