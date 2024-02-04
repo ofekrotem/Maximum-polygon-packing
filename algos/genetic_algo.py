@@ -37,7 +37,7 @@ class GeneticAlgo(Algo):
                 print(f"Best solution in generation {i+1}: {max_sol.grade()}")
                 best_grade_so_far = max_sol.grade()
                 pbar.set_description(f"Running genetic algorithm - Best Grade in gen {i+1}: {best_grade_so_far}")
-                
+
                 pbar.update(1)
 
         sol = max(self.curr_generation, key=lambda s: s.grade())
