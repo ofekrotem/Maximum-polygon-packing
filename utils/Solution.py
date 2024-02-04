@@ -22,9 +22,9 @@ class Solution:
         self.Shapes = shapes
 
     def __str__(self):
-        str = f"Selected {len(self.Y_Offset)} shapes.\n"
-        for i in range(len(self.Y_Offset)):
-            str += f"Shape {i + 1} (ID: {self.Items_ID[i]}):\n \t X offset: {self.X_Offset[i]}\n \t Y offset: {self.Y_Offset[i]}\n"
+        str = f"Selected {len(self.Items_ID)} shapes. Total value: {self.grade()}\n"
+        for i , id in enumerate(self.Items_ID):
+            str += f"Shape {i + 1} (ID: {id}):\n Value: {self.Shapes[id].Value}\n\t X offset: {self.X_Offset[i]}\n \t Y offset: {self.Y_Offset[i]}\n"
         return str
 
     def export_to_json(self) -> json:
@@ -62,9 +62,9 @@ class Solution:
 
     def visualize_solution(self) -> None:
         fig, ax = plt.subplots()
+        # Set title with data about the solution
+        ax.set_title(f"Solution: {self.Name}\nValue of solution: {self.grade():,} out of {sum([s.Value for s in self.Shapes]):,}\nNumber of shapes: {len(self.Items_ID)} out of {len(self.Shapes)}")
 
-        ax.text(0.5, 1.05, f"Value:{self.grade()} ", horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes, fontsize=12, fontweight='bold')
 
         # Plot the container
         container_polygon = patches.Polygon(list(zip(self.Container.X_cor, self.Container.Y_cor)), closed=True,
@@ -86,7 +86,8 @@ class Solution:
             all_x_coords.extend(item_x)
             all_y_coords.extend(item_y)
 
-            item_polygon = patches.Polygon(list(zip(item_x, item_y)), closed=True, edgecolor='red', alpha=0.5)
+            item_polygon = patches.Polygon(list(zip(item_x, item_y)), closed=True, edgecolor='red', alpha=0.4)
+
             ax.add_patch(item_polygon)
 
         # Set plot limits based on all coordinates

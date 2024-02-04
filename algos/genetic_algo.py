@@ -28,21 +28,20 @@ class GeneticAlgo(Algo):
         best_grade_so_far = max(self.curr_generation, key=lambda s: s.grade()).grade()
         print(f"Best solution in base generation: {best_grade_so_far}")
 
-        with tqdm(total=self.max_generations, desc=f"Running genetic algorithm - Best Grade: {best_grade_so_far}", unit="gen") as pbar:
+        with tqdm(total=self.max_generations, desc=f"Running genetic algorithm - Best Grade in baseGen: {best_grade_so_far}", unit="gen") as pbar:
             for i in range(self.max_generations):
-                pbar.update(1)
                 print(f"Starting generation {i + 1}")
                 self.next_generation = self.generate_next_gen()
-                max_sol = max(self.curr_generation, key=lambda s: s.grade())
-                print(f"Best solution in generation {i + 1}: {max_sol.grade()}")
-
-                if max_sol.grade() > best_grade_so_far:
-                    best_grade_so_far = max_sol.grade()
-                    pbar.set_description(f"Running genetic algorithm - Best Grade: {best_grade_so_far}")
-
                 self.curr_generation = self.next_generation
+                max_sol = max(self.curr_generation, key=lambda s: s.grade())
+                print(f"Best solution in generation {i+1}: {max_sol.grade()}")
+                best_grade_so_far = max_sol.grade()
+                pbar.set_description(f"Running genetic algorithm - Best Grade in gen {i+1}: {best_grade_so_far}")
+                
+                pbar.update(1)
 
         sol = max(self.curr_generation, key=lambda s: s.grade())
+        print(f"Best solution found: {sol}")
         end_time = time.time()
         duration = end_time - start_time
         print(f"Total time taken: {duration:.3f} seconds")
