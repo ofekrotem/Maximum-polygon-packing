@@ -1,3 +1,4 @@
+import logging
 from utils.Solution import Solution
 from utils.Shape import Shape
 from utils.Container import Container
@@ -64,35 +65,35 @@ class Algo:
         solution_shapes_list = self.Shapes
 
         if classification == AlgoClassification.RANDOM:
-            print("Random shapes list")
+            logging.debug("Random shapes list")
             solution_shapes_list = self.ShuffledShapes
         elif classification == AlgoClassification.SORT_BY_AREA:
-            print("Sorted by area")
+            logging.debug("Sorted by area")
             solution_shapes_list = self.SortedbyAreaShapes
         elif classification == AlgoClassification.SORT_BY_VALUE:
-            print("Sorted by value")
+            logging.debug("Sorted by value")
             solution_shapes_list = self.SortedbyValueShapes
 
         for shape in solution_shapes_list:
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
-            print(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
+            logging.debug(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
             for i in range(self.TriesOnRandomCreation):
                 x_sample = random.randint(min_x, max_x)
                 y_sample = random.randint(min_y, max_y)
-                print(f"Trying to place {shape.Index} with Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y} at ({x_sample}, {y_sample})")
+                logging.debug(f"Trying to place {shape.Index} with Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y} at ({x_sample}, {y_sample})")
                 s.X_Offset.append(x_sample)
                 s.Y_Offset.append(y_sample)
                 s.Items_ID.append(shape.Index)
 
                 ans = s.is_valid()
                 if ans:
-                    print(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
+                    logging.info(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
                     break
                 else:
                     s.X_Offset.pop()
                     s.Y_Offset.pop()
                     s.Items_ID.pop()
-        # print(s)
+        logging.debug(s)
         return s
 
