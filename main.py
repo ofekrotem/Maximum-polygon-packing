@@ -8,8 +8,8 @@ def setup_logging():
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Genetic Algorithm for Shape Placement')
-    parser.add_argument('--pop_size', type=int, default=100, help='Population size')
-    parser.add_argument('--gens', type=int, default=50, help='Number of generations')
+    parser.add_argument('--pop_size', type=int, default=10, help='Population size')
+    parser.add_argument('--gens', type=int, default=10, help='Number of generations')
     parser.add_argument('--tries', type=int, default=10, help='Tries on random creation')
     parser.add_argument('--instance', type=str, required=True, help='Path to instance JSON file')
     return parser.parse_args()

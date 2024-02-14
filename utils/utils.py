@@ -1,5 +1,6 @@
 import enum
 import json
+import logging
 from utils.Container import Container
 from utils.Shape import Shape
 from utils.Solution import Solution
@@ -30,8 +31,8 @@ def load_json_from_file(file_path: str, classification: LoadJsonClassification) 
                 raise Exception("Invalid Classification")
 
     except FileNotFoundError:
-        print(f"File not found: {file_path}")
+        logging.error(f"File not found: {file_path}")
         return None
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON from {file_path}: {e}")
+        logging.error(f"Error decoding JSON from {file_path}: {e}")
         return None
