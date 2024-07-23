@@ -88,7 +88,7 @@ class Algo:
 
                 ans = s.is_valid()
                 if ans:
-                    logging.info(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
+                    logging.debug(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
                     break
                 else:
                     s.X_Offset.pop()
