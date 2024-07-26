@@ -9,10 +9,11 @@ from utils.Shape import Shape
 from utils.Solution import Solution
 from utils.utils import LoadJsonClassification, load_json_from_file
 import random
+
 random.seed(0)
 
 class GeneticAlgo(Algo):
-    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int, tries_on_random_creation: int,instance_name: str):
+    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int, tries_on_random_creation: int, instance_name: str):
         super().__init__(shapes, cont, tries_on_random_creation)
         if pop_size < 2:
             raise Exception("Population size must be at least 2")
@@ -51,13 +52,12 @@ class GeneticAlgo(Algo):
         # Elitism: Keep the best solution
         new_gen = [max(self.curr_generation, key=lambda s: s.grade())]
         # Generate new generation
-        for i in range(self.population_size-1):
+        while len(new_gen) < self.population_size:
             # Select parents using tournament selection
             p1 = self.tournament_selection()
             p2 = self.tournament_selection()
 
             child = self.crossover(p1, p2)
-
             child = self.mutate(child)
 
             # Ensure diversity by checking if the child is significantly different from existing solutions
@@ -72,7 +72,7 @@ class GeneticAlgo(Algo):
     def generate_base_gen(self) -> list[Solution]:
         base_gen = load_json_from_file(f'./data/baseGens/{self.instance_name}_baseGen.json', LoadJsonClassification.BASE_GEN)
         if base_gen is None:
-            lst = [self.create_random_offset_solution(AlgoClassification.SORT_BY_AREA) for _ in range(self.population_size)]
+            lst = [self.create_bottom_left_solution() for _ in range(self.population_size)]
             base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
             # save base_gen to file, base gen is a list of solutions
             solutions_as_dicts = [s.export_to_json() for s in base_gen]
@@ -124,18 +124,15 @@ class GeneticAlgo(Algo):
         return winner
 
     def mutate(self, solution: Solution) -> Solution:
-    # Mutation: Randomly perturb the solution
-        mutated_solution = copy.deepcopy(solution)  # Ensure not to modify the original solution
+        # Mutation: Push polygons left if possible while maintaining validity
+        logging.info(f"Mutating solution {solution}")
+        mutated_solution = copy.deepcopy(solution)
 
-        for i in range(len(mutated_solution.Items_ID)):
-            # Apply a small random perturbation to the offset
-            mutated_solution.X_Offset[i] += random.uniform(-10, 10)
-            mutated_solution.Y_Offset[i] += random.uniform(-10, 10)
+        # Sort shapes by their leftmost x-coordinate
+        shapes_sorted_by_left = mutated_solution.get_shapes_sorted_by_real_x_coordinates()
 
-            # Check if the mutated solution is valid
-            if mutated_solution.is_valid():
-                solution = copy.deepcopy(mutated_solution)
-                logging.debug("Mutated solution")
+        for _, _, shape in shapes_sorted_by_left:
+            min_x, _, max_x, _ = self.find_ranges(shape)
 
-        return solution
 
+        return mutated_solution

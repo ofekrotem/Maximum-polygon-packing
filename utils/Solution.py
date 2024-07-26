@@ -103,6 +103,18 @@ class Solution:
             grade=grade+self.Shapes[index].Value
         return grade
 
+    def get_shapes_sorted_by_real_x_coordinates(self):
+        shapes_lst = []
+        for shape in self.Shapes:
+            shapes_lst.append({
+                "index": shape.Index,
+                "minX": min(shape.X_cor)+self.X_Offset[shape.Index],
+                "shape": shape,
+                "offset": self.X_Offset[shape.Index]
+                })
+
+        return sorted(shapes_lst, key=lambda x: x["minX"])
+
     @classmethod
     def import_from_json(cls, json_data):
         type = json_data.get("type", "")

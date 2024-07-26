@@ -4,18 +4,19 @@ from utils.Shape import Shape
 from utils.Container import Container
 from enum import Enum
 import random
+from shapely.geometry import Polygon
+
 random.seed(0)
 
 # Consts
 TYPE = "cgshop2024_solution"
 NAME = "atris42"
 META = {"approach": "generated solution"}
+
 class AlgoClassification(Enum):
     RANDOM = "random"
     SORT_BY_AREA = "sort_by_area"
     SORT_BY_VALUE = "sort_by_value"
-
-
 
 class Algo:
     def __init__(self, shapes: list[Shape], cont: Container, tries_on_random_creation: int = 100):
@@ -55,12 +56,7 @@ class Algo:
 
         return min_x, min_y, max_x, max_y
 
-
-    # 2 variatons of this function, controlled by 'classification' arg:
-    # 1. "random" - for a random order scan of the shapes list
-    # 2. "sort by area" - for an increasing area scan of the shapes list
-    # 3. "sort by value" - for an decreasing value scan of the shapes list
-    def create_random_offset_solution(self, classification: str) -> Solution:
+    def create_random_offset_solution(self, classification: AlgoClassification) -> Solution:
         s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
         solution_shapes_list = self.Shapes
 
@@ -97,3 +93,50 @@ class Algo:
         logging.debug(s)
         return s
 
+    def create_bottom_left_solution(self) -> Solution:
+        s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
+        occupied_spaces = []
+
+        sorted_shapes = self.sort_value()
+
+        logging.info(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
+        for shape in sorted_shapes:
+            x, y = self.find_bottom_left_position(shape, occupied_spaces)
+            if x is not None and y is not None:
+                s.X_Offset.append(x)
+                s.Y_Offset.append(y)
+                s.Items_ID.append(shape.Index)
+                occupied_spaces.append(self.create_shape_polygon(shape, x, y))
+                logging.info(f"Placed shape {shape.Index} at position ({x}, {y}).")
+            else:
+                logging.warning(f"Could not place shape {shape.Index}. No valid position found.")
+
+        logging.debug(f"Final Solution: {s}")
+        return s
+
+    def find_bottom_left_position(self, shape: Shape, occupied_spaces: list[Polygon]) -> tuple[int, int]:
+        container_polygon = Polygon(list(zip(self.Container.X_cor, self.Container.Y_cor)))
+        shape_width = max(shape.X_cor) - min(shape.X_cor)
+        shape_height = max(shape.Y_cor) - min(shape.Y_cor)
+
+        candidate_positions = [(min(self.Container.X_cor), min(self.Container.Y_cor))]  # Start with the bottom-left corner
+
+        for poly in occupied_spaces:
+            minx, miny, maxx, maxy = poly.bounds
+            candidate_positions.append((minx + shape_width, miny))  # Right of the shape
+            candidate_positions.append((minx, miny + shape_height))  # Above the shape
+
+        candidate_positions = sorted(set(candidate_positions), key=lambda pos: (pos[1], pos[0]))  # Sort by y, then by x
+
+        for x, y in candidate_positions:
+            shape_polygon = self.create_shape_polygon(shape, x, y)
+            if container_polygon.contains(shape_polygon) and not any(shape_polygon.intersects(occupied) for occupied in occupied_spaces):
+                return x, y
+
+            logging.debug(f"Checking position ({x}, {y}) for shape {shape.Index}.")
+
+        return None, None
+
+    def create_shape_polygon(self, shape: Shape, x_offset: int, y_offset: int) -> Polygon:
+        vertices = [(x + x_offset, y + y_offset) for x, y in zip(shape.X_cor, shape.Y_cor)]
+        return Polygon(vertices)
