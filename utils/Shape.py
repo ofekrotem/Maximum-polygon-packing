@@ -1,5 +1,3 @@
-
-
 from shapely.geometry import Polygon
 
 
@@ -10,12 +8,16 @@ class Shape:
         self.X_cor = x_cor
         self.Y_cor = y_cor
         self.Quantity = qnty
-        self.Value = val
-        self.Index = index
+        self.real_value = val
         self.X_offset = 0
         self.Y_offset = 0
+        self.Value = self.calculated_value()
+        self.Index = index
 
 
+    def calculated_value(self)->int:
+        area = self.get_area()
+        return self.real_value / area
 
     def __str__(self):
         str = f"Value: {self.Value} \n Quantity: {self.Quantity} \n"

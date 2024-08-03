@@ -67,19 +67,15 @@ class Algo:
         solution_shapes_list = []
         classification = self.get_random_algo_classification()
         if classification == AlgoClassification.RANDOM:
-            print("Random shapes list")
             logging.debug("Random shapes list")
             solution_shapes_list = self.shuffle_list()
         elif classification == AlgoClassification.SORT_BY_AREA:
-            print("Sorted by area")
             logging.debug("Sorted by area")
             solution_shapes_list = self.sort_area()
         elif classification == AlgoClassification.SORT_BY_VALUE:
-            print("Sorted by value")
             logging.debug("Sorted by value")
             solution_shapes_list = self.sort_value()
         elif classification == AlgoClassification.SORT_BY_PERIMETER:
-            print("Sorted by perimeter")
             logging.debug("Sorted by perimeter")
             solution_shapes_list = self.sort_by_perimeter()
 
@@ -116,23 +112,18 @@ class Algo:
     def create_bottom_left_solution(self) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
         classification = self.get_random_algo_classification()
-        print(f"Classification: {classification}")
         sorted_shapes = []
 
         if classification == AlgoClassification.RANDOM:
-            print("Random shapes list")
             logging.debug("Random shapes list")
             sorted_shapes = self.shuffle_list()
         elif classification == AlgoClassification.SORT_BY_AREA:
-            print("Sorted by area")
             logging.debug("Sorted by area")
             sorted_shapes = self.sort_area()
         elif classification == AlgoClassification.SORT_BY_VALUE:
-            print("Sorted by value")
             logging.debug("Sorted by value")
             sorted_shapes = self.sort_value()
         elif classification == AlgoClassification.SORT_BY_PERIMETER:
-            print("Sorted by perimeter")
             logging.debug("Sorted by perimeter")
             sorted_shapes = self.sort_by_perimeter()
 

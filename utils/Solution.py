@@ -98,5 +98,5 @@ class Solution:
     def grade(self)-> int:
         grade=0
         for shape in self.Shapes:
-            grade+=shape.Value
+            grade+=shape.real_value
         return grade
