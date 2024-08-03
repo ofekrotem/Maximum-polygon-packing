@@ -11,3 +11,14 @@ class Container:
         for i in range(len(self.X_cor)):
             str+=f"({self.X_cor[i]} , {self.Y_cor[i]})\n"
         return str
+
+    ## method to serialize the object to json
+    def export_to_json(self):
+        json_data={
+            "container":{
+                "x":self.X_cor,
+                "y":self.Y_cor
+            },
+            "instance_name":self.Instance_Name
+        }
+        return json_data

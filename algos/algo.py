@@ -1,3 +1,4 @@
+import copy
 import logging
 from utils.Solution import Solution
 from utils.Shape import Shape
@@ -22,19 +23,19 @@ class Algo:
     def __init__(self, shapes: list[Shape], cont: Container, tries_on_random_creation: int = 100):
         self.Shapes = shapes
         self.Container = cont
-        self.ShuffledShapes = self.shuffle_list()
-        self.SortedbyAreaShapes = self.sort_area()
-        self.SortedbyValueShapes = self.sort_value()
         self.TriesOnRandomCreation = tries_on_random_creation
 
     def sort_value(self) -> list[Shape]:
-        return sorted(self.Shapes, key=lambda s: s.Value, reverse=True)
+        shapes_copy = copy.deepcopy(self.Shapes)
+        return sorted(shapes_copy, key=lambda s: s.Value, reverse=True)
 
     def sort_area(self) -> list[Shape]:
-        return sorted(self.Shapes, key=lambda s: s.get_area())
+        shapes_copy = copy.deepcopy(self.Shapes)
+        return sorted(shapes_copy, key=lambda s: s.get_area())
 
     def shuffle_list(self) -> list[Shape]:
-        shuffled = self.Shapes[:]
+        shapes_copy = copy.deepcopy(self.Shapes)
+        shuffled = shapes_copy[:]
         random.shuffle(shuffled)
         return shuffled
 
@@ -57,20 +58,21 @@ class Algo:
         return min_x, min_y, max_x, max_y
 
     def create_random_offset_solution(self, classification: AlgoClassification) -> Solution:
-        s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
-        solution_shapes_list = self.Shapes
+        s = Solution(TYPE, NAME, META, self.Container, [])
+        solution_shapes_list = []
 
         if classification == AlgoClassification.RANDOM:
             logging.debug("Random shapes list")
-            solution_shapes_list = self.ShuffledShapes
+            solution_shapes_list = self.shuffle_list()
         elif classification == AlgoClassification.SORT_BY_AREA:
             logging.debug("Sorted by area")
-            solution_shapes_list = self.SortedbyAreaShapes
+            solution_shapes_list = self.sort_area()
         elif classification == AlgoClassification.SORT_BY_VALUE:
             logging.debug("Sorted by value")
-            solution_shapes_list = self.SortedbyValueShapes
+            solution_shapes_list = self.sort_value()
 
         for shape in solution_shapes_list:
+            found_place = False
             min_x, min_y, max_x, max_y = self.find_ranges(shape)
             logging.debug(f"Shape {shape.Index}, Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
@@ -78,62 +80,72 @@ class Algo:
                 x_sample = random.randint(min_x, max_x)
                 y_sample = random.randint(min_y, max_y)
                 logging.debug(f"Trying to place {shape.Index} with Ranges: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y} at ({x_sample}, {y_sample})")
-                s.X_Offset.append(x_sample)
-                s.Y_Offset.append(y_sample)
-                s.Items_ID.append(shape.Index)
+                shape.X_offset = x_sample
+                shape.Y_offset = y_sample
+                s.Shapes.append(shape)
 
                 ans = s.is_valid()
                 if ans:
                     logging.debug(f"Placed shape {shape.Index} successfully at ({x_sample}, {y_sample})")
+                    found_place = True
                     break
                 else:
-                    s.X_Offset.pop()
-                    s.Y_Offset.pop()
-                    s.Items_ID.pop()
+                    logging.debug(f"Could not place shape {shape.Index} at ({x_sample}, {y_sample})")
+                    shape.X_offset = 0
+                    shape.Y_offset = 0
+                    s.Shapes.remove(shape)
+
+            if not found_place:
+                logging.warning(f"Could not place shape {shape.Index} after {self.TriesOnRandomCreation} tries.")
+
         logging.debug(s)
         return s
 
     def create_bottom_left_solution(self) -> Solution:
-        s = Solution(TYPE, NAME, META, [], [], [], self.Container, self.Shapes)
-        occupied_spaces = []
+        s = Solution(TYPE, NAME, META, self.Container, [])
 
         sorted_shapes = self.sort_value()
 
         logging.info(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
-            x, y = self.find_bottom_left_position(shape, occupied_spaces)
+            x, y = self.find_bottom_left_position(shape,s)
             if x is not None and y is not None:
-                s.X_Offset.append(x)
-                s.Y_Offset.append(y)
-                s.Items_ID.append(shape.Index)
-                occupied_spaces.append(self.create_shape_polygon(shape, x, y))
-                logging.info(f"Placed shape {shape.Index} at position ({x}, {y}).")
+                logging.info(f"Placed shape {shape.Index} with offset ({x}, {y}).")
             else:
                 logging.warning(f"Could not place shape {shape.Index}. No valid position found.")
 
         logging.debug(f"Final Solution: {s}")
         return s
 
-    def find_bottom_left_position(self, shape: Shape, occupied_spaces: list[Polygon]) -> tuple[int, int]:
-        container_polygon = Polygon(list(zip(self.Container.X_cor, self.Container.Y_cor)))
+    def find_bottom_left_position(self, shape: Shape,currSolution: Solution) -> tuple[int, int]:
         shape_width = max(shape.X_cor) - min(shape.X_cor)
         shape_height = max(shape.Y_cor) - min(shape.Y_cor)
 
         candidate_positions = [(min(self.Container.X_cor), min(self.Container.Y_cor))]  # Start with the bottom-left corner
 
-        for poly in occupied_spaces:
-            minx, miny, maxx, maxy = poly.bounds
+        for locatedShape in currSolution.Shapes:
+            poly = locatedShape.create_polygon_object()
+            minx, miny, _, _ = poly.bounds
+            logging.debug(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}")
             candidate_positions.append((minx + shape_width, miny))  # Right of the shape
             candidate_positions.append((minx, miny + shape_height))  # Above the shape
 
         candidate_positions = sorted(set(candidate_positions), key=lambda pos: (pos[1], pos[0]))  # Sort by y, then by x
 
         for x, y in candidate_positions:
-            shape_polygon = self.create_shape_polygon(shape, x, y)
-            if container_polygon.contains(shape_polygon) and not any(shape_polygon.intersects(occupied) for occupied in occupied_spaces):
-                return x, y
-
+            possible_x_offset = x - min(shape.X_cor)
+            possible_y_offset = y - min(shape.Y_cor)
             logging.debug(f"Checking position ({x}, {y}) for shape {shape.Index}.")
+            shape.X_offset = possible_x_offset
+            shape.Y_offset = possible_y_offset
+            currSolution.Shapes.append(shape)
+            isValid = currSolution.is_valid()
+            if isValid:
+                return possible_x_offset, possible_y_offset
+            else:
+                shape.X_offset = 0
+                shape.Y_offset = 0
+                currSolution.Shapes.remove(shape)
 
         return None, None
 

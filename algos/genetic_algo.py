@@ -1,5 +1,4 @@
 import copy
-import json
 import logging
 import time
 from tqdm import tqdm
@@ -7,7 +6,6 @@ from .algo import Algo, AlgoClassification
 from utils.Container import Container
 from utils.Shape import Shape
 from utils.Solution import Solution
-from utils.utils import LoadJsonClassification, load_json_from_file
 import random
 
 random.seed(0)
@@ -52,37 +50,47 @@ class GeneticAlgo(Algo):
         # Elitism: Keep the best solution
         new_gen = [max(self.curr_generation, key=lambda s: s.grade())]
         # Generate new generation
-        while len(new_gen) < self.population_size:
+        while len(new_gen) <= self.population_size:
             # Select parents using tournament selection
             p1 = self.tournament_selection()
             p2 = self.tournament_selection()
 
-            child = self.crossover(p1, p2)
-            child = self.mutate(child)
-
+            # child = self.crossover(p1, p2)
+            # child = self.mutate(child)
+            child = max(p1, p2, key=lambda s: s.grade())
             # Ensure diversity by checking if the child is significantly different from existing solutions
             if all(child.grade() != s.grade() for s in self.curr_generation):
                 new_gen.append(child)
             else:
+                new_gen.append(child)
                 # If not diverse, generate a new solution
-                new_gen.append(self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE))
+                # new_gen.append(self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE))
 
         return sorted(new_gen, key=lambda s: s.grade(), reverse=True)
 
     def generate_base_gen(self) -> list[Solution]:
-        base_gen = load_json_from_file(f'./data/baseGens/{self.instance_name}_baseGen.json', LoadJsonClassification.BASE_GEN)
-        if base_gen is None:
-            lst = [self.create_bottom_left_solution() for _ in range(self.population_size)]
-            base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
-            # save base_gen to file, base gen is a list of solutions
-            solutions_as_dicts = [s.export_to_json() for s in base_gen]
-            with open(f'./data/baseGens/{self.instance_name}_baseGen.json', 'w') as f:
-                json.dump(solutions_as_dicts, f)
-        else:
-            # go over the list of solutions and assign the container and shapes list
-            for s in base_gen:
-                s.Container = self.Container
-                s.Shapes = self.Shapes
+        solution_options = ['random', 'bottom_left', 'sort_by_area', 'sort_by_value']
+        lst = []
+        for i in range(self.population_size):
+            random_option = random.choice(solution_options)
+            if random_option == 'random':
+                logging.debug("Creating random solution")
+                random_solution = self.create_random_offset_solution(AlgoClassification.RANDOM)
+                lst.append(random_solution)
+            elif random_option == 'bottom_left':
+                logging.debug("Creating bottom left solution")
+                bottom_left_solution = self.create_bottom_left_solution()
+                lst.append(bottom_left_solution)
+            elif random_option == 'sort_by_area':
+                logging.debug("Creating sort by area solution")
+                sorted_by_area_solution = self.create_random_offset_solution(AlgoClassification.SORT_BY_AREA)
+                lst.append(sorted_by_area_solution)
+            elif random_option == 'sort_by_value':
+                logging.debug("Creating sort by value solution")
+                sorted_by_value_solution = self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE)
+                lst.append(sorted_by_value_solution)
+
+        base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
         return base_gen
 
     def crossover(self, s1: Solution, s2: Solution) -> Solution:
@@ -91,24 +99,20 @@ class GeneticAlgo(Algo):
         s2_child = copy.deepcopy(s2)
 
         # Try to fit shapes that are in s2 and not in s1 into s1
-        for i in range(len(s2.Items_ID)):
-            if s2.Items_ID[i] not in s1_child.Items_ID:
+        for shape in s2_child.Shapes:
+            if shape not in s1_child.Shapes:
                 temp_child = copy.deepcopy(s1_child)
-                temp_child.Items_ID.append(s2.Items_ID[i])
-                temp_child.X_Offset.append(s2.X_Offset[i])
-                temp_child.Y_Offset.append(s2.Y_Offset[i])
+                temp_child.Shapes.append(shape)
 
                 if temp_child.is_valid():
                     s1_child = copy.deepcopy(temp_child)
                     logging.info(f"Merged shape into s1_child raising grade from {s1_child.grade()} to {temp_child.grade()}")
 
         # Try to fit shapes that are in s1 and not in s2 into s2
-        for i in range(len(s1.Items_ID)):
-            if s1.Items_ID[i] not in s2_child.Items_ID:
+        for shape in s1_child.Shapes:
+            if shape not in s2_child.Shapes:
                 temp_s2 = copy.deepcopy(s2_child)
-                temp_s2.Items_ID.append(s1.Items_ID[i])
-                temp_s2.X_Offset.append(s1.X_Offset[i])
-                temp_s2.Y_Offset.append(s1.Y_Offset[i])
+                temp_s2.Shapes.append(shape)
 
                 if temp_s2.is_valid():
                     logging.info(f"Merged shape into s2_child raising grade from {s2_child.grade()} to {temp_s2.grade()}")
@@ -128,11 +132,23 @@ class GeneticAlgo(Algo):
         logging.info(f"Mutating solution {solution}")
         mutated_solution = copy.deepcopy(solution)
 
-        # Sort shapes by their leftmost x-coordinate
-        shapes_sorted_by_left = mutated_solution.get_shapes_sorted_by_real_x_coordinates()
+        # # Sort shapes by their leftmost x-coordinate
+        # shapes_sorted_by_left = mutated_solution.get_shapes_sorted_by_real_x_coordinates()
+        # x_container_coards = mutated_solution.Container.X_cor
+        # y_container_coards = mutated_solution.Container.Y_cor
+        # min_y_container = min(y_container_coards)
+        # for _, _, shape in shapes_sorted_by_left:
+        #     left_limit = min(x_container_coards)
+        #     x_coords, _= shape.get_real_coords()
+        #     right_limit = min(x_coords)
+        #     while right_limit > left_limit:
+        #         x_sample = (left_limit + right_limit) // 2
+        #         updated_offset = (min(x_coords) - x_sample, )
 
-        for _, _, shape in shapes_sorted_by_left:
-            min_x, _, max_x, _ = self.find_ranges(shape)
+
+
+
+
 
 
         return mutated_solution
