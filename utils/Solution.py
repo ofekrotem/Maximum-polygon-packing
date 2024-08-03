@@ -91,12 +91,14 @@ class Solution:
 
         plt.show()
 
-
-
-
-
     def grade(self)-> int:
         grade=0
         for shape in self.Shapes:
             grade+=shape.real_value
         return grade
+
+    def get_remaining_area_in_container(self)->float:
+        remaining_area = self.Container.get_area()
+        for item in self.Shapes:
+            remaining_area -= item.get_area()
+        return remaining_area

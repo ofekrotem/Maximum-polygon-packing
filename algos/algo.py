@@ -26,22 +26,22 @@ class Algo:
         self.Container = cont
         self.TriesOnRandomCreation = tries_on_random_creation
 
-    def sort_value(self) -> list[Shape]:
-        shapes_copy = copy.deepcopy(self.Shapes)
+    def sort_value(self,shapes_list) -> list[Shape]:
+        shapes_copy = copy.deepcopy(shapes_list)
         return sorted(shapes_copy, key=lambda s: s.Value, reverse=True)
 
-    def sort_area(self) -> list[Shape]:
-        shapes_copy = copy.deepcopy(self.Shapes)
+    def sort_area(self,shapes_list) -> list[Shape]:
+        shapes_copy = copy.deepcopy(shapes_list)
         return sorted(shapes_copy, key=lambda s: s.get_area())
 
-    def shuffle_list(self) -> list[Shape]:
-        shapes_copy = copy.deepcopy(self.Shapes)
+    def shuffle_list(self,shapes_list) -> list[Shape]:
+        shapes_copy = copy.deepcopy(shapes_list)
         shuffled = shapes_copy[:]
         random.shuffle(shuffled)
         return shuffled
 
-    def sort_by_perimeter(self) -> list[Shape]:
-        shapes_copy = copy.deepcopy(self.Shapes)
+    def sort_by_perimeter(self,shapes_list) -> list[Shape]:
+        shapes_copy = copy.deepcopy(shapes_list)
         return sorted(shapes_copy, key=lambda s: s.get_perimeter())
 
     def find_ranges(self, s: Shape) -> tuple[int, int, int, int]:
@@ -64,20 +64,7 @@ class Algo:
 
     def create_random_offset_solution(self) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        solution_shapes_list = []
-        classification = self.get_random_algo_classification()
-        if classification == AlgoClassification.RANDOM:
-            logging.debug("Random shapes list")
-            solution_shapes_list = self.shuffle_list()
-        elif classification == AlgoClassification.SORT_BY_AREA:
-            logging.debug("Sorted by area")
-            solution_shapes_list = self.sort_area()
-        elif classification == AlgoClassification.SORT_BY_VALUE:
-            logging.debug("Sorted by value")
-            solution_shapes_list = self.sort_value()
-        elif classification == AlgoClassification.SORT_BY_PERIMETER:
-            logging.debug("Sorted by perimeter")
-            solution_shapes_list = self.sort_by_perimeter()
+        solution_shapes_list = self.sort_shapes_random_algo_classification(self.Shapes)
 
         for shape in solution_shapes_list:
             found_place = False
@@ -111,22 +98,7 @@ class Algo:
 
     def create_bottom_left_solution(self) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        classification = self.get_random_algo_classification()
-        sorted_shapes = []
-
-        if classification == AlgoClassification.RANDOM:
-            logging.debug("Random shapes list")
-            sorted_shapes = self.shuffle_list()
-        elif classification == AlgoClassification.SORT_BY_AREA:
-            logging.debug("Sorted by area")
-            sorted_shapes = self.sort_area()
-        elif classification == AlgoClassification.SORT_BY_VALUE:
-            logging.debug("Sorted by value")
-            sorted_shapes = self.sort_value()
-        elif classification == AlgoClassification.SORT_BY_PERIMETER:
-            logging.debug("Sorted by perimeter")
-            sorted_shapes = self.sort_by_perimeter()
-
+        sorted_shapes = self.sort_shapes_random_algo_classification(self.Shapes)
         logging.info(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
             x, y = self.find_bottom_left_position(shape,s)
@@ -144,7 +116,6 @@ class Algo:
         for locatedShape in currSolution.Shapes:
             poly = locatedShape.create_polygon_object()
             minx, miny, maxx, maxy = poly.bounds
-            print(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}, maxx={maxx}, maxy={maxy}")
             logging.debug(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}")
             candidate_positions.append((maxx+1, miny+1))  # Right of the shape
             candidate_positions.append((minx+1, maxy+1))  # Above the shape
@@ -172,6 +143,22 @@ class Algo:
         vertices = [(x + x_offset, y + y_offset) for x, y in zip(shape.X_cor, shape.Y_cor)]
         return Polygon(vertices)
 
-    def get_random_algo_classification(self) -> AlgoClassification:
+    def sort_shapes_random_algo_classification(self,shapes_to_sort) -> AlgoClassification:
         classification_options = list(AlgoClassification)
-        return random.choice(classification_options)
+        classification = random.choice(classification_options)
+        shapes = []
+        if classification == AlgoClassification.RANDOM:
+            logging.debug("Random shapes list")
+            shapes = self.shuffle_list(shapes_to_sort)
+        elif classification == AlgoClassification.SORT_BY_AREA:
+            logging.debug("Sorted by area")
+            shapes = self.sort_area(shapes_to_sort)
+        elif classification == AlgoClassification.SORT_BY_VALUE:
+            logging.debug("Sorted by value")
+            shapes = self.sort_value(shapes_to_sort)
+        elif classification == AlgoClassification.SORT_BY_PERIMETER:
+            logging.debug("Sorted by perimeter")
+            shapes = self.sort_by_perimeter(shapes_to_sort)
+
+        return shapes
+

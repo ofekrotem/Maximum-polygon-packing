@@ -1,3 +1,6 @@
+from shapely import Polygon
+
+
 class Container:
     def __init__(self,x_cor:list[int]=[],y_cor:list[int]=[],in_name:str=""):
         if len(x_cor) != len(y_cor):
@@ -22,3 +25,9 @@ class Container:
             "instance_name":self.Instance_Name
         }
         return json_data
+
+    def get_polygon_object(self):
+        return Polygon(list(zip(self.X_cor,self.Y_cor)))
+
+    def get_area(self):
+        return self.get_polygon_object().area
