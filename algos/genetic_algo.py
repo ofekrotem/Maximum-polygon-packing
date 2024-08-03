@@ -79,7 +79,7 @@ class GeneticAlgo(Algo):
                 lst.append(random_solution)
             elif random_option == 'bottom_left':
                 logging.debug("Creating bottom left solution")
-                bottom_left_solution = self.create_bottom_left_solution()
+                bottom_left_solution = self.create_bottom_left_solution(AlgoClassification.SORT_BY_VALUE)
                 lst.append(bottom_left_solution)
             elif random_option == 'sort_by_area':
                 logging.debug("Creating sort by area solution")

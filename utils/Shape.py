@@ -28,6 +28,10 @@ class Shape:
         poly = self.create_polygon_object()
         return poly.area
 
+    def get_perimeter(self)->float:
+        poly = self.create_polygon_object()
+        return poly.length
+
     def get_real_coords(self)->list[int]:
         real_x = [x + self.X_offset for x in self.X_cor]
         real_y = [y + self.Y_offset for y in self.Y_cor]

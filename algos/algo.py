@@ -18,6 +18,7 @@ class AlgoClassification(Enum):
     RANDOM = "random"
     SORT_BY_AREA = "sort_by_area"
     SORT_BY_VALUE = "sort_by_value"
+    SORT_BY_PERIMETER = "sort_by_perimeter"
 
 class Algo:
     def __init__(self, shapes: list[Shape], cont: Container, tries_on_random_creation: int = 100):
@@ -38,6 +39,10 @@ class Algo:
         shuffled = shapes_copy[:]
         random.shuffle(shuffled)
         return shuffled
+
+    def sort_by_perimeter(self) -> list[Shape]:
+        shapes_copy = copy.deepcopy(self.Shapes)
+        return sorted(shapes_copy, key=lambda s: s.get_perimeter())
 
     def find_ranges(self, s: Shape) -> tuple[int, int, int, int]:
         min_shape_x = min(s.X_cor)
@@ -70,6 +75,9 @@ class Algo:
         elif classification == AlgoClassification.SORT_BY_VALUE:
             logging.debug("Sorted by value")
             solution_shapes_list = self.sort_value()
+        elif classification == AlgoClassification.SORT_BY_PERIMETER:
+            logging.debug("Sorted by perimeter")
+            solution_shapes_list = self.sort_by_perimeter()
 
         for shape in solution_shapes_list:
             found_place = False
@@ -101,10 +109,23 @@ class Algo:
         logging.debug(s)
         return s
 
-    def create_bottom_left_solution(self) -> Solution:
+    def create_bottom_left_solution(self,classification: AlgoClassification) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
 
-        sorted_shapes = self.sort_value()
+        sorted_shapes = []
+
+        if classification == AlgoClassification.RANDOM:
+            logging.debug("Random shapes list")
+            sorted_shapes = self.shuffle_list()
+        elif classification == AlgoClassification.SORT_BY_AREA:
+            logging.debug("Sorted by area")
+            sorted_shapes = self.sort_area()
+        elif classification == AlgoClassification.SORT_BY_VALUE:
+            logging.debug("Sorted by value")
+            sorted_shapes = self.sort_value()
+        elif classification == AlgoClassification.SORT_BY_PERIMETER:
+            logging.debug("Sorted by perimeter")
+            sorted_shapes = self.sort_by_perimeter()
 
         logging.info(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
@@ -118,17 +139,15 @@ class Algo:
         return s
 
     def find_bottom_left_position(self, shape: Shape,currSolution: Solution) -> tuple[int, int]:
-        shape_width = max(shape.X_cor) - min(shape.X_cor)
-        shape_height = max(shape.Y_cor) - min(shape.Y_cor)
-
         candidate_positions = [(min(self.Container.X_cor), min(self.Container.Y_cor))]  # Start with the bottom-left corner
 
         for locatedShape in currSolution.Shapes:
             poly = locatedShape.create_polygon_object()
-            minx, miny, _, _ = poly.bounds
+            minx, miny, maxx, maxy = poly.bounds
+            print(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}, maxx={maxx}, maxy={maxy}")
             logging.debug(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}")
-            candidate_positions.append((minx + shape_width, miny))  # Right of the shape
-            candidate_positions.append((minx, miny + shape_height))  # Above the shape
+            candidate_positions.append((maxx+1, miny+1))  # Right of the shape
+            candidate_positions.append((minx+1, maxy+1))  # Above the shape
 
         candidate_positions = sorted(set(candidate_positions), key=lambda pos: (pos[1], pos[0]))  # Sort by y, then by x
 
