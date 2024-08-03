@@ -110,13 +110,13 @@ class Algo:
         logging.debug(f"Final Solution: {s}")
         return s
 
-    def find_bottom_left_position(self, shape: Shape,currSolution: Solution) -> tuple[int, int]:
+    def find_bottom_left_position(self, shape: Shape,curr_solution: Solution) -> tuple[int, int]:
         candidate_positions = [(min(self.Container.X_cor), min(self.Container.Y_cor))]  # Start with the bottom-left corner
 
-        for locatedShape in currSolution.Shapes:
-            poly = locatedShape.create_polygon_object()
+        for located_shape in curr_solution.Shapes:
+            poly = located_shape.create_polygon_object()
             minx, miny, maxx, maxy = poly.bounds
-            logging.debug(f"Shape {locatedShape.Index} bounds: minx={minx}, miny={miny}")
+            logging.debug(f"Shape {located_shape.Index} bounds: minx={minx}, miny={miny}")
             candidate_positions.append((maxx+1, miny+1))  # Right of the shape
             candidate_positions.append((minx+1, maxy+1))  # Above the shape
 
@@ -128,14 +128,14 @@ class Algo:
             logging.debug(f"Checking position ({x}, {y}) for shape {shape.Index}.")
             shape.X_offset = possible_x_offset
             shape.Y_offset = possible_y_offset
-            currSolution.Shapes.append(shape)
-            isValid = currSolution.is_valid()
-            if isValid:
+            curr_solution.Shapes.append(shape)
+            is_valid = curr_solution.is_valid()
+            if is_valid:
                 return possible_x_offset, possible_y_offset
             else:
                 shape.X_offset = 0
                 shape.Y_offset = 0
-                currSolution.Shapes.remove(shape)
+                curr_solution.Shapes.remove(shape)
 
         return None, None
 
