@@ -2,7 +2,7 @@ import copy
 import logging
 import time
 from tqdm import tqdm
-from .algo import Algo, AlgoClassification
+from .algo import Algo
 from utils.Container import Container
 from utils.Shape import Shape
 from utils.Solution import Solution
@@ -68,27 +68,15 @@ class GeneticAlgo(Algo):
 
         return sorted(new_gen, key=lambda s: s.grade(), reverse=True)
 
+
     def generate_base_gen(self) -> list[Solution]:
-        solution_options = ['random', 'bottom_left', 'sort_by_area', 'sort_by_value']
         lst = []
         for i in range(self.population_size):
-            random_option = random.choice(solution_options)
-            if random_option == 'random':
-                logging.debug("Creating random solution")
-                random_solution = self.create_random_offset_solution(AlgoClassification.RANDOM)
-                lst.append(random_solution)
-            elif random_option == 'bottom_left':
-                logging.debug("Creating bottom left solution")
-                bottom_left_solution = self.create_bottom_left_solution(AlgoClassification.SORT_BY_VALUE)
-                lst.append(bottom_left_solution)
-            elif random_option == 'sort_by_area':
-                logging.debug("Creating sort by area solution")
-                sorted_by_area_solution = self.create_random_offset_solution(AlgoClassification.SORT_BY_AREA)
-                lst.append(sorted_by_area_solution)
-            elif random_option == 'sort_by_value':
-                logging.debug("Creating sort by value solution")
-                sorted_by_value_solution = self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE)
-                lst.append(sorted_by_value_solution)
+            if i % 2 == 0:
+                solution = self.create_random_offset_solution()
+            else:
+                solution = self.create_bottom_left_solution()
+            lst.append(solution)
 
         base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
         return base_gen
