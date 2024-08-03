@@ -21,12 +21,13 @@ def load_json_from_file(file_path: str, classification: LoadJsonClassification) 
                     shapes_list.append(Shape(item['x'], item['y'], item['quantity'], item['value'], index))
                 return cont, shapes_list
             elif classification == LoadJsonClassification.BASE_GEN:
-                solutions_data = json_data
+                solutions_data = json_data['solutions']
+                container = Container(json_data['container']['x'], json_data['container']['y'], json_data['instance_name'])
                 solutions_list = []
                 for solution_json in solutions_data:
-                    solution = Solution.import_from_json(solution_json)
+                    solution = Solution.import_from_json(solution_json,container)
                     solutions_list.append(solution)
-                return solutions_list
+                return solutions_list, container
             else:
                 raise Exception("Invalid Classification")
 

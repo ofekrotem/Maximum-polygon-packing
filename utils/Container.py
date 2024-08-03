@@ -1,3 +1,6 @@
+from shapely import Polygon
+
+
 class Container:
     def __init__(self,x_cor:list[int]=[],y_cor:list[int]=[],in_name:str=""):
         if len(x_cor) != len(y_cor):
@@ -11,3 +14,20 @@ class Container:
         for i in range(len(self.X_cor)):
             str+=f"({self.X_cor[i]} , {self.Y_cor[i]})\n"
         return str
+
+    ## method to serialize the object to json
+    def export_to_json(self):
+        json_data={
+            "container":{
+                "x":self.X_cor,
+                "y":self.Y_cor
+            },
+            "instance_name":self.Instance_Name
+        }
+        return json_data
+
+    def get_polygon_object(self):
+        return Polygon(list(zip(self.X_cor,self.Y_cor)))
+
+    def get_area(self):
+        return self.get_polygon_object().area

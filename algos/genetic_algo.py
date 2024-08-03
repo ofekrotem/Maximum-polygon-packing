@@ -1,18 +1,17 @@
 import copy
-import json
 import logging
 import time
 from tqdm import tqdm
-from .algo import Algo, AlgoClassification
+from .algo import Algo
 from utils.Container import Container
 from utils.Shape import Shape
 from utils.Solution import Solution
-from utils.utils import LoadJsonClassification, load_json_from_file
 import random
+
 random.seed(0)
 
 class GeneticAlgo(Algo):
-    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int, tries_on_random_creation: int,instance_name: str):
+    def __init__(self, shapes: list[Shape], cont: Container, pop_size: int, gens: int, tries_on_random_creation: int, instance_name: str):
         super().__init__(shapes, cont, tries_on_random_creation)
         if pop_size < 2:
             raise Exception("Population size must be at least 2")
@@ -26,9 +25,9 @@ class GeneticAlgo(Algo):
         start_time = time.time()
 
         self.curr_generation = self.generate_base_gen()
-        best_grade_so_far = max(self.curr_generation, key=lambda s: s.grade()).grade()
-        logging.info(f"Best solution in base generation: {best_grade_so_far}")
-
+        max_sol = max(self.curr_generation, key=lambda s: s.grade())
+        logging.info(f"Best solution in base generation: {max_sol.grade()}")
+        best_grade_so_far = max_sol.grade()
         with tqdm(total=self.max_generations, desc=f"Running genetic algorithm - Best Grade in baseGen: {best_grade_so_far}", unit="gen") as pbar:
             for i in range(self.max_generations):
                 logging.info(f"Starting generation {i + 1}")
@@ -49,40 +48,26 @@ class GeneticAlgo(Algo):
 
     def generate_next_gen(self) -> list[Solution]:
         # Elitism: Keep the best solution
-        new_gen = [max(self.curr_generation, key=lambda s: s.grade())]
+        # new_gen = [max(self.curr_generation, key=lambda s: s.grade())]
+        new_gen = []
         # Generate new generation
-        for i in range(self.population_size-1):
-            # Select parents using tournament selection
-            p1 = self.tournament_selection()
-            p2 = self.tournament_selection()
-
-            child = self.crossover(p1, p2)
-
+        for child in self.curr_generation:
             child = self.mutate(child)
-
-            # Ensure diversity by checking if the child is significantly different from existing solutions
-            if all(child.grade() != s.grade() for s in self.curr_generation):
-                new_gen.append(child)
-            else:
-                # If not diverse, generate a new solution
-                new_gen.append(self.create_random_offset_solution(AlgoClassification.SORT_BY_VALUE))
+            new_gen.append(child)
 
         return sorted(new_gen, key=lambda s: s.grade(), reverse=True)
 
+
     def generate_base_gen(self) -> list[Solution]:
-        base_gen = load_json_from_file(f'./data/baseGens/{self.instance_name}_baseGen.json', LoadJsonClassification.BASE_GEN)
-        if base_gen is None:
-            lst = [self.create_random_offset_solution(AlgoClassification.SORT_BY_AREA) for _ in range(self.population_size)]
-            base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
-            # save base_gen to file, base gen is a list of solutions
-            solutions_as_dicts = [s.export_to_json() for s in base_gen]
-            with open(f'./data/baseGens/{self.instance_name}_baseGen.json', 'w') as f:
-                json.dump(solutions_as_dicts, f)
-        else:
-            # go over the list of solutions and assign the container and shapes list
-            for s in base_gen:
-                s.Container = self.Container
-                s.Shapes = self.Shapes
+        lst = []
+        for i in range(self.population_size):
+            if i % 2 == 0:
+                solution = self.create_random_offset_solution()
+            else:
+                solution = self.create_bottom_left_solution()
+            lst.append(solution)
+
+        base_gen = sorted(lst, key=lambda s: s.grade(), reverse=True)
         return base_gen
 
     def crossover(self, s1: Solution, s2: Solution) -> Solution:
@@ -91,24 +76,20 @@ class GeneticAlgo(Algo):
         s2_child = copy.deepcopy(s2)
 
         # Try to fit shapes that are in s2 and not in s1 into s1
-        for i in range(len(s2.Items_ID)):
-            if s2.Items_ID[i] not in s1_child.Items_ID:
+        for shape in s2_child.Shapes:
+            if shape not in s1_child.Shapes:
                 temp_child = copy.deepcopy(s1_child)
-                temp_child.Items_ID.append(s2.Items_ID[i])
-                temp_child.X_Offset.append(s2.X_Offset[i])
-                temp_child.Y_Offset.append(s2.Y_Offset[i])
+                temp_child.Shapes.append(shape)
 
                 if temp_child.is_valid():
                     s1_child = copy.deepcopy(temp_child)
                     logging.info(f"Merged shape into s1_child raising grade from {s1_child.grade()} to {temp_child.grade()}")
 
         # Try to fit shapes that are in s1 and not in s2 into s2
-        for i in range(len(s1.Items_ID)):
-            if s1.Items_ID[i] not in s2_child.Items_ID:
+        for shape in s1_child.Shapes:
+            if shape not in s2_child.Shapes:
                 temp_s2 = copy.deepcopy(s2_child)
-                temp_s2.Items_ID.append(s1.Items_ID[i])
-                temp_s2.X_Offset.append(s1.X_Offset[i])
-                temp_s2.Y_Offset.append(s1.Y_Offset[i])
+                temp_s2.Shapes.append(shape)
 
                 if temp_s2.is_valid():
                     logging.info(f"Merged shape into s2_child raising grade from {s2_child.grade()} to {temp_s2.grade()}")
@@ -123,19 +104,87 @@ class GeneticAlgo(Algo):
         winner = max(tournament_candidates, key=lambda s: s.grade())
         return winner
 
+    def fit_remaining_shapes_in_solution(self, solution: Solution) -> Solution:
+        solution_copy = copy.deepcopy(solution)
+        remaining_shapes = [shape for shape in self.Shapes if shape not in solution_copy.Shapes]
+        remaining_shapes = self.sort_shapes_random_algo_classification(remaining_shapes)
+
+        for shape in remaining_shapes:
+            remaining_area = solution_copy.get_remaining_area_in_container()
+            if shape.get_area() > remaining_area:
+                print(f"Could not place shape {shape.Index}. Not enough space left.")
+                continue
+            x,y = self.find_bottom_left_position(shape, solution_copy)
+            if x is not None and y is not None:
+                print(f"Placed shape {shape.Index} with offset ({x}, {y}).")
+            else:
+                print(f"Could not place shape {shape.Index}. No valid position found.")
+
+        return solution_copy
+
     def mutate(self, solution: Solution) -> Solution:
-    # Mutation: Randomly perturb the solution
-        mutated_solution = copy.deepcopy(solution)  # Ensure not to modify the original solution
+        solution1 = self.push_shapes_left(solution)
+        solution1 = self.push_shapes_down(solution)
+        solution1 = self.fit_remaining_shapes_in_solution(solution1)
 
-        for i in range(len(mutated_solution.Items_ID)):
-            # Apply a small random perturbation to the offset
-            mutated_solution.X_Offset[i] += random.uniform(-10, 10)
-            mutated_solution.Y_Offset[i] += random.uniform(-10, 10)
+        solution2 = self.push_shapes_down(solution)
+        solution2 = self.push_shapes_left(solution)
+        solution2 = self.fit_remaining_shapes_in_solution(solution2)
 
-            # Check if the mutated solution is valid
-            if mutated_solution.is_valid():
-                solution = copy.deepcopy(mutated_solution)
-                logging.debug("Mutated solution")
+        solution = max(solution1, solution2, key=lambda s: s.grade())
 
         return solution
 
+    def push_shapes_left(self, solution: Solution) -> Solution:
+        # Mutation: Push polygons left if possible while maintaining validity
+        logging.info(f"Mutating solution {solution}")
+        print("starting mutation")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[0]))
+
+        for shape in solution_shapes_sorted:
+            print(f"Shape {shape.Index}")
+            left_limit = min(solution.Container.X_cor)
+            right_limit = min(shape.get_real_coords()[0])
+            while left_limit + 0.5 < right_limit - 0.5:
+                print(f"Left: {left_limit}, Right: {right_limit}")
+                sample_x = (left_limit + right_limit) // 2
+                original_x_offset = shape.X_offset
+                shape.X_offset += sample_x - right_limit
+                if mutated_solution.is_valid():
+                    print(f"Valid solution found at {sample_x}")
+                    logging.info(f"Mutated solution {solution} by moving shape {shape.Index} to {sample_x}")
+                    right_limit = sample_x
+                else:
+                    print(f"Invalid solution found at {sample_x}")
+                    shape.X_offset = original_x_offset
+                    left_limit = sample_x
+        return mutated_solution
+
+
+    def push_shapes_down(self, solution: Solution) -> Solution:
+        # Mutation: Push polygons down if possible while maintaining validity
+        logging.info(f"Mutating solution {solution}")
+        print("starting mutation")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[1]))
+
+        for shape in solution_shapes_sorted:
+            print(f"Shape {shape.Index}")
+            left_limit = min(solution.Container.Y_cor)
+            right_limit = min(shape.get_real_coords()[1])
+            while left_limit + 0.5 < right_limit - 0.5:
+                print(f"Left: {left_limit}, Right: {right_limit}")
+                sample_y = (left_limit + right_limit) // 2
+                original_y_offset = shape.Y_offset
+                shape.Y_offset += sample_y - right_limit
+                if mutated_solution.is_valid():
+                    print(f"Valid solution found at {sample_y}")
+                    logging.info(f"Mutated solution {solution} by moving shape {shape.Index} to {sample_y}")
+                    right_limit = sample_y
+                else:
+                    print(f"Invalid solution found at {sample_y}")
+                    shape.Y_offset = original_y_offset
+                    left_limit = sample_y
+
+        return mutated_solution
