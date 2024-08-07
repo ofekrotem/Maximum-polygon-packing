@@ -1,6 +1,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,python,macos,pycharm+all,visualstudio,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,python,macos,pycharm+all,visualstudio,visualstudiocode
 
+# Log files
+logs*.txt
+
+
 ### macOS ###
 # General
 .DS_Store

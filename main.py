@@ -2,9 +2,10 @@ import argparse
 import logging
 from algos.genetic_algo import GeneticAlgo
 from utils.utils import LoadJsonClassification, load_json_from_file
+import time
 
 def setup_logging():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename="logs.txt",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Genetic Algorithm for Shape Placement')
@@ -30,8 +31,12 @@ def main():
     logging.info(f"Initialized Genetic Algorithm with pop_size={args.pop_size}, gens={args.gens}, tries_on_random_creation={args.tries}")
 
     # Run the algorithm
-    algo.run()
-    logging.info("Algorithm execution completed")
+    start_time = time.time()
+    solution = algo.run()
+    end_time = time.time()
+    duration = end_time - start_time
+    logging.info(f"Algorithm execution completed\nTotal time taken: {duration:.3f} seconds")
+    solution.visualize_solution()
 
 if __name__ == "__main__":
     main()

@@ -3,13 +3,12 @@ import json
 import logging
 from utils.Container import Container
 from utils.Shape import Shape
-from utils.Solution import Solution
 
 class LoadJsonClassification(enum.Enum):
     INSTANCE = "instance"
     BASE_GEN = "base_gen"
 
-def load_json_from_file(file_path: str, classification: LoadJsonClassification) -> (Container, list[Shape]) or list[Solution]:
+def load_json_from_file(file_path: str, classification: LoadJsonClassification) -> tuple[Container, list[Shape]]:
     try:
         with open(file_path, 'r') as file:
             json_data = json.load(file)
@@ -20,16 +19,6 @@ def load_json_from_file(file_path: str, classification: LoadJsonClassification) 
                 for index, item in enumerate(shapes_data):
                     shapes_list.append(Shape(item['x'], item['y'], item['quantity'], item['value'], index))
                 return cont, shapes_list
-            elif classification == LoadJsonClassification.BASE_GEN:
-                solutions_data = json_data['solutions']
-                container = Container(json_data['container']['x'], json_data['container']['y'], json_data['instance_name'])
-                solutions_list = []
-                for solution_json in solutions_data:
-                    solution = Solution.import_from_json(solution_json,container)
-                    solutions_list.append(solution)
-                return solutions_list, container
-            else:
-                raise Exception("Invalid Classification")
 
     except FileNotFoundError:
         logging.error(f"File not found: {file_path}")
