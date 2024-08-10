@@ -20,7 +20,7 @@ class Shape:
         return self.real_value / area
 
     def __str__(self):
-        str = f"Value: {self.Value} \n Quantity: {self.Quantity} \n"
+        str = f"Value: {self.real_value} \n Quantity: {self.Quantity} \n"
         for i in range(len(self.X_cor)):
             str += f"({self.X_cor[i] + self.X_offset} , {self.Y_cor[i] + self.Y_offset})\n"
         str += f"Original Index in instance file: {self.Index}"

@@ -36,6 +36,10 @@ class Algo:
         shapes_copy = copy.deepcopy(shapes_list)
         return sorted(shapes_copy, key=lambda s: s.Value, reverse=True)
 
+    def sort_shapes_by_real_value(self,shapes_list) -> list[Shape]:
+        shapes_copy = copy.deepcopy(shapes_list)
+        return sorted(shapes_copy, key=lambda s: s.real_value, reverse=True)
+
     def sort_shapes_by_area(self,shapes_list) -> list[Shape]:
         shapes_copy = copy.deepcopy(shapes_list)
         return sorted(shapes_copy, key=lambda s: s.get_area())
@@ -68,9 +72,9 @@ class Algo:
 
         return min_x, min_y, max_x, max_y
 
-    def create_random_offset_solution(self) -> Solution:
+    def create_random_offset_solution(self,shapes_list) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        solution_shapes_list = self.shuffle_shape_list(self.Shapes)
+        solution_shapes_list = self.shuffle_shape_list(shapes_list)
 
         for shape in solution_shapes_list:
             found_place = False
@@ -102,9 +106,8 @@ class Algo:
         logging.debug(s)
         return s
 
-    def create_bottom_left_solution(self) -> Solution:
+    def create_bottom_left_solution(self,sorted_shapes) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        sorted_shapes = self.sort_shapes_by_value(self.Shapes)
         logging.debug(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
         print(f"Starting bottom-left placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
@@ -117,9 +120,8 @@ class Algo:
         logging.debug(f"Final Solution: {s}")
         return s
 
-    def create_top_left_solution(self) -> Solution:
+    def create_top_left_solution(self,sorted_shapes) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        sorted_shapes = self.sort_shapes_by_value(self.Shapes)
         logging.debug(f"Starting top-left placement with {len(sorted_shapes)} shapes.")
         print(f"Starting top-left placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
@@ -132,9 +134,8 @@ class Algo:
         logging.debug(f"Final Solution: {s}")
         return s
 
-    def create_top_right_solution(self) -> Solution:
+    def create_top_right_solution(self,sorted_shapes) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        sorted_shapes = self.sort_shapes_by_value(self.Shapes)
         logging.debug(f"Starting top-right placement with {len(sorted_shapes)} shapes.")
         print(f"Starting top-right placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:
@@ -147,9 +148,8 @@ class Algo:
         logging.debug(f"Final Solution: {s}")
         return s
 
-    def create_bottom_right_solution(self) -> Solution:
+    def create_bottom_right_solution(self,sorted_shapes) -> Solution:
         s = Solution(TYPE, NAME, META, self.Container, [])
-        sorted_shapes = self.sort_shapes_by_value(self.Shapes)
         print(f"Starting bottom-right placement with {len(sorted_shapes)} shapes.")
         logging.debug(f"Starting bottom-right placement with {len(sorted_shapes)} shapes.")
         for shape in sorted_shapes:

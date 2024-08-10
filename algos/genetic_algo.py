@@ -22,6 +22,11 @@ class GeneticAlgo(Algo):
         self.instance_name = instance_name
 
     def run(self) -> Solution:
+        sum = 0
+        for shape in self.Shapes:
+            sum += shape.real_value
+
+        print(f"Sum of all shapes: {sum:,}")
         start_time = time.time()
         self.curr_generation = self.generate_base_gen()
         end_time = time.time()
@@ -36,10 +41,10 @@ class GeneticAlgo(Algo):
                 self.next_generation = self.generate_next_gen()
                 end_time = time.time()
                 duration = end_time - start_time
-                all_grades_in_prev_gen = [sol.grade() for sol in self.curr_generation]
-                if all(sol.grade() in all_grades_in_prev_gen for sol in self.next_generation):
-                    logging.info(f"Generation {i + 1} is the same as previous generation. Exiting")
-                    break
+                # all_grades_in_prev_gen = [sol.grade() for sol in self.curr_generation]
+                # if all(sol.grade() in all_grades_in_prev_gen for sol in self.next_generation):
+                #     logging.info(f"Generation {i + 1} is the same as previous generation. Exiting")
+                #     break
                 self.curr_generation = self.next_generation
                 max_sol = max(self.curr_generation, key=lambda s: s.grade())
                 best_grade_so_far = max_sol.grade()
@@ -55,8 +60,6 @@ class GeneticAlgo(Algo):
         return sol
 
     def generate_next_gen(self) -> list[Solution]:
-        # Elitism: Keep the best solution
-        # new_gen = [max(self.curr_generation, key=lambda s: s.grade())]
         futures = []
         # Generate new generation
         with ProcessPoolExecutor() as executor:
@@ -64,25 +67,37 @@ class GeneticAlgo(Algo):
                 futures.append(executor.submit(self.mutate, child))
 
         new_gen = [future.result() for future in futures]
-
-        return sorted(new_gen, key=lambda s: s.grade(), reverse=True)
+        # Elitism: Keep the best solution
+        max_sol = max(new_gen, key=lambda s: s.grade())
+        futures = []
+        with ProcessPoolExecutor() as executor:
+            for index1, parent1 in enumerate(new_gen):
+                for index2, parent2 in enumerate(new_gen):
+                    if index1 < index2:
+                        futures.append(executor.submit(self.crossover, parent1, parent2))
+        new_gen = [future.result() for future in futures]
+        new_gen.append(max_sol)
+        # Sort the new generation by grade and take the top population_size solutions
+        new_gen = sorted(new_gen, key=lambda s: s.grade(), reverse=True)
+        return new_gen[:self.population_size]
 
 
     def generate_base_gen(self) -> list[Solution]:
+        shapes_sorted_by_real_value = self.sort_shapes_by_real_value(self.Shapes)
         with ProcessPoolExecutor() as executor:
             futures = []
 
             for i in range(self.population_size):
                 if i % 5 == 0:
-                    futures.append(executor.submit(self.create_bottom_right_solution))
+                    futures.append(executor.submit(self.create_bottom_right_solution, shapes_sorted_by_real_value))
                 elif i % 5 == 1:
-                    futures.append(executor.submit(self.create_bottom_left_solution))
+                    futures.append(executor.submit(self.create_bottom_left_solution, shapes_sorted_by_real_value))
                 elif i % 5 == 2:
-                    futures.append(executor.submit(self.create_top_right_solution))
+                    futures.append(executor.submit(self.create_top_right_solution, shapes_sorted_by_real_value))
                 elif i % 5 == 3:
-                    futures.append(executor.submit(self.create_top_left_solution))
+                    futures.append(executor.submit(self.create_top_left_solution, shapes_sorted_by_real_value))
                 else:
-                    futures.append(executor.submit(self.create_random_offset_solution))
+                    futures.append(executor.submit(self.create_random_offset_solution,shapes_sorted_by_real_value))
 
         solutions = [future.result() for future in futures]
         base_gen = sorted(solutions, key=lambda s: s.grade(), reverse=True)
@@ -165,5 +180,24 @@ class GeneticAlgo(Algo):
         new_solution = self.push_shapes_right(new_solution)
         new_solution = self.fit_remaining_shapes_in_solution(new_solution,FindPositionClassification.TOP_RIGHT)
         return new_solution
+
+    def crossover(self, parent1: Solution, parent2: Solution) -> Solution:
+        shapes_set = set(parent1.Shapes)
+        for shape in parent2.Shapes:
+            if shape.Index not in [s.Index for s in shapes_set]:
+                shapes_set.add(shape)
+        print(f"Starting crossover - parent1 has {len(parent1.Shapes)} shapes, parent2 has {len(parent2.Shapes)} shapes, total {len(shapes_set)} shapes")
+        shapes_sorted_by_calculated_value = self.sort_shapes_by_value(list(shapes_set))
+        futures = []
+        with ProcessPoolExecutor() as executor:
+            futures.append(executor.submit(self.create_bottom_left_solution,list(shapes_sorted_by_calculated_value)))
+            futures.append(executor.submit(self.create_bottom_right_solution,list(shapes_sorted_by_calculated_value)))
+            futures.append(executor.submit(self.create_top_left_solution,list(shapes_sorted_by_calculated_value)))
+            futures.append(executor.submit(self.create_top_right_solution,list(shapes_sorted_by_calculated_value)))
+
+        solutions = [future.result() for future in futures]
+        max_sol = max(solutions, key=lambda s: s.grade())
+        print(f"Finished crossover - started with {len(parent1.Shapes)} and {len(parent2.Shapes)} shapes, finished with {len(max_sol.Shapes)} shapes, grade: {max_sol.grade()}")
+        return max_sol
 
 
