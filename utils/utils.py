@@ -8,17 +8,21 @@ class LoadJsonClassification(enum.Enum):
     INSTANCE = "instance"
     BASE_GEN = "base_gen"
 
-def load_json_from_file(file_path: str, classification: LoadJsonClassification) -> tuple[Container, list[Shape]]:
+def load_json_from_file(file_path: str) -> tuple[Container, list[Shape]]:
     try:
         with open(file_path, 'r') as file:
             json_data = json.load(file)
-            if classification == LoadJsonClassification.INSTANCE:
-                shapes_data = json_data['items']
-                shapes_list = []
-                cont = Container(json_data['container']['x'], json_data['container']['y'], json_data['instance_name'])
-                for index, item in enumerate(shapes_data):
-                    shapes_list.append(Shape(item['x'], item['y'], item['quantity'], item['value'], index))
-                return cont, shapes_list
+            shapes_data = json_data['items']
+            shapes_list = []
+            cont = Container(json_data['container']['x'], json_data['container']['y'], json_data['instance_name'])
+            for index, item in enumerate(shapes_data):
+                quantity = item['quantity']
+                if quantity > 0:
+                    for i in range(quantity):
+                        shapes_list.append(Shape(item['x'], item['y'], 1, item['value'], f"{index}_{i}"))
+                else:
+                    logging.debug(f"Shape {item['value']} has quantity 0, skipping")
+            return cont, shapes_list
 
     except FileNotFoundError:
         logging.error(f"File not found: {file_path}")

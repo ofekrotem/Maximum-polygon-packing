@@ -1,15 +1,19 @@
 import argparse
 import logging
+import os
 from algos.genetic_algo import GeneticAlgo
-from utils.utils import LoadJsonClassification, load_json_from_file
+from utils.utils import load_json_from_file
 import time
 
 def setup_logging():
-    logging.basicConfig(filename="logs.txt",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    log_file = 'logs.txt'
+    if os.path.exists(log_file):
+        os.remove(log_file)
+    logging.basicConfig(filename="logs.txt",level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Genetic Algorithm for Shape Placement')
-    parser.add_argument('--pop_size', type=int, default=10, help='Population size')
+    parser.add_argument('--pop_size', type=int, default=4, help='Population size')
     parser.add_argument('--gens', type=int, default=10, help='Number of generations')
     parser.add_argument('--tries', type=int, default=10, help='Tries on random creation')
     parser.add_argument('--instance', type=str, required=True, help='Path to instance JSON file')
@@ -23,7 +27,7 @@ def main():
     args = parse_arguments()
 
     # Load instance data
-    instance_data = load_json_from_file(args.instance, LoadJsonClassification.INSTANCE)
+    instance_data = load_json_from_file(args.instance)
     logging.info(f"Loaded instance data from {args.instance}")
 
     # Initialize genetic algorithm with parameters

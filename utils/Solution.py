@@ -38,10 +38,6 @@ class Solution:
         return json_data
 
     def is_valid(self) -> bool:
-        if any(item.Index < 0 for item in self.Shapes):
-            logging.error("Negative index found")
-            return False
-
         container_polygon = Polygon(list(zip(self.Container.X_cor, self.Container.Y_cor)))
         for item1 in self.Shapes:
             item1_polygon = item1.create_polygon_object()
