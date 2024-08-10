@@ -37,6 +37,10 @@ class GeneticAlgo(Algo):
                 self.next_generation = self.generate_next_gen()
                 end_time = time.time()
                 duration = end_time - start_time
+                all_grades_in_prev_gen = [sol.grade() for sol in self.curr_generation]
+                if all(sol.grade() in all_grades_in_prev_gen for sol in self.next_generation):
+                    logging.info(f"Generation {i + 1} is the same as previous generation. Exiting")
+                    break
                 self.curr_generation = self.next_generation
                 max_sol = max(self.curr_generation, key=lambda s: s.grade())
                 best_grade_so_far = max_sol.grade()
