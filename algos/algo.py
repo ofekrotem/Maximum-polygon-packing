@@ -327,6 +327,119 @@ class Algo:
 
         return None, None
 
+    def push_shapes_left(self, solution: Solution) -> Solution:
+        # Mutation: Push polygons left if possible while maintaining validity
+        logging.debug(f"Pushing shapes left {solution}")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[0]))
+
+        for shape in solution_shapes_sorted:
+            left_limit = min(solution.Container.X_cor)
+            right_limit = min(shape.get_real_coords()[0])
+            while left_limit + 0.5 < right_limit - 0.5:
+                sample_x = (left_limit + right_limit) // 2
+                original_x_offset = shape.X_offset
+                shape.X_offset += sample_x - right_limit
+                if mutated_solution.is_valid():
+                    logging.debug(f"Mutated solution {solution} by moving shape {shape.Index} left to {sample_x}")
+                    right_limit = sample_x
+                else:
+                    shape.X_offset = original_x_offset
+                    left_limit = sample_x
+        return mutated_solution
+
+
+    def push_shapes_down(self, solution: Solution) -> Solution:
+        # Mutation: Push polygons down if possible while maintaining validity
+        logging.debug(f"Pushing shapes down {solution}")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[1]))
+
+        for shape in solution_shapes_sorted:
+            bottom_limit = min(solution.Container.Y_cor)
+            top_limit = min(shape.get_real_coords()[1])
+            while bottom_limit + 0.5 < top_limit - 0.5:
+                sample_y = (bottom_limit + top_limit) // 2
+                original_y_offset = shape.Y_offset
+                shape.Y_offset += sample_y - top_limit
+                if mutated_solution.is_valid():
+                    logging.debug(f"Mutated solution {solution} by moving shape {shape.Index} down to {sample_y}")
+                    top_limit = sample_y
+                else:
+                    shape.Y_offset = original_y_offset
+                    bottom_limit = sample_y
+
+        return mutated_solution
+
+    def push_shapes_up(self,solution: Solution) -> Solution:
+        # Mutation: Push polygons up if possible while maintaining validity
+        logging.debug(f"Pushing shapes up {solution}")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[1]), reverse=True)
+
+        for shape in solution_shapes_sorted:
+            top_limit = max(solution.Container.Y_cor)
+            bottom_limit = max(shape.get_real_coords()[1])
+            while bottom_limit + 0.5 < top_limit - 0.5:
+                sample_y = (bottom_limit + top_limit) // 2
+                original_y_offset = shape.Y_offset
+                shape.Y_offset += sample_y - bottom_limit
+                if mutated_solution.is_valid():
+                    logging.debug(f"Mutated solution {solution} by moving shape {shape.Index} up to {sample_y}")
+                    bottom_limit = sample_y
+                else:
+                    shape.Y_offset = original_y_offset
+                    top_limit = sample_y
+
+        return mutated_solution
+
+    def push_shapes_right(self, solution: Solution) -> Solution:
+        # Mutation: Push polygons right if possible while maintaining validity
+        logging.debug(f"Pushing shapes right {solution}")
+        mutated_solution = copy.deepcopy(solution)
+        solution_shapes_sorted = sorted(mutated_solution.Shapes, key=lambda s: min(s.get_real_coords()[0]), reverse=True)
+
+        for shape in solution_shapes_sorted:
+            right_limit = max(solution.Container.X_cor)
+            left_limit = max(shape.get_real_coords()[0])
+            while left_limit + 0.5 < right_limit - 0.5:
+                sample_x = (left_limit + right_limit) // 2
+                original_x_offset = shape.X_offset
+                shape.X_offset += sample_x - left_limit
+                if mutated_solution.is_valid():
+                    logging.debug(f"Mutated solution {solution} by moving shape {shape.Index} left to {sample_x}")
+                    left_limit = sample_x
+                else:
+                    shape.X_offset = original_x_offset
+                    right_limit = sample_x
+        return mutated_solution
+
+    def fit_remaining_shapes_in_solution(self, solution: Solution,classification: FindPositionClassification) -> Solution:
+        solution_copy = copy.deepcopy(solution)
+        solution_shape_ids = [shape.Index for shape in solution_copy.Shapes]
+        remaining_shapes = [shape for shape in self.Shapes if shape.Index not in solution_shape_ids]
+        remaining_shapes = self.sort_shapes_by_value(remaining_shapes)
+
+        for shape in remaining_shapes:
+            remaining_area = solution_copy.get_remaining_area_in_container()
+            if shape.get_area() > remaining_area:
+                logging.debug(f"Could not place shape {shape.Index}. Not enough space left.")
+                continue
+            if classification == FindPositionClassification.BOTTOM_LEFT:
+                x, y = self.find_bottom_left_position(shape, solution_copy)
+            elif classification == FindPositionClassification.TOP_LEFT:
+                x, y = self.find_top_left_position(shape, solution_copy)
+            elif classification == FindPositionClassification.BOTTOM_RIGHT:
+                x, y = self.find_bottom_right_position(shape, solution_copy)
+            elif classification == FindPositionClassification.TOP_RIGHT:
+                x, y = self.find_top_right_position(shape, solution_copy)
+            if x is not None and y is not None:
+                logging.debug(f"Placed shape {shape.Index} with offset ({x}, {y}).")
+            else:
+                logging.debug(f"Could not place shape {shape.Index}. No valid position found.")
+
+        return solution_copy
+
     def create_shape_polygon(self, shape: Shape, x_offset: int, y_offset: int) -> Polygon:
         vertices = [(x + x_offset, y + y_offset) for x, y in zip(shape.X_cor, shape.Y_cor)]
         return Polygon(vertices)
