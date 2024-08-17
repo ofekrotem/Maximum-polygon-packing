@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 from algos.genetic_algo import GeneticAlgo
@@ -9,12 +10,12 @@ def setup_logging():
     log_file = 'logs.txt'
     if os.path.exists(log_file):
         os.remove(log_file)
-    logging.basicConfig(filename="logs.txt",level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename="logs.txt",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Genetic Algorithm for Shape Placement')
     parser.add_argument('--pop_size', type=int, default=4, help='Population size')
-    parser.add_argument('--gens', type=int, default=10, help='Number of generations')
+    parser.add_argument('--gens', type=int, default=5, help='Number of generations')
     parser.add_argument('--tries', type=int, default=10, help='Tries on random creation')
     parser.add_argument('--instance', type=str, required=True, help='Path to instance JSON file')
     return parser.parse_args()
@@ -40,6 +41,9 @@ def main():
     end_time = time.time()
     duration = end_time - start_time
     logging.info(f"Algorithm execution completed\nTotal time taken: {duration:.3f} seconds")
+    json_data = solution.export_to_json()
+    with open(f"./solutions/{solution.Name}_solution.json", 'w') as file:
+        json.dump(json_data, file, indent=4)
     solution.visualize_solution()
 
 if __name__ == "__main__":
