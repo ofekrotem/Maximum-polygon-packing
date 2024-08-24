@@ -54,7 +54,7 @@ class Solution:
         Returns:
             dict: A dictionary containing the solution's type, name, number of included items, metadata, item indices, and translations.
         """
-        item_indices = [item.Index for item in self.Shapes]
+        item_indices = [str(item.Index).split('_')[0] for item in self.Shapes]
         y_translations = [item.Y_offset for item in self.Shapes]
         x_translations = [item.X_offset for item in self.Shapes]
         json_data = {
